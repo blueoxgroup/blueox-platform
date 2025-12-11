@@ -12,21 +12,21 @@
         "id": "2",
         "content": "Create GitHub repository and push code",
         "details": "1. Initialize git repositories for both projects. 2. Add, commit, and push code to GitHub. 3. Create repository with proper README files.",
-        "status": "in_progress",
+        "status": "completed",
         "priority": "high"
       },
       "3": {
         "id": "3",
         "content": "Configure Vercel deployment",
         "details": "1. Connect GitHub repository to Vercel. 2. Configure build settings for both main site and admin portal. 3. Set up environment variables in Vercel.",
-        "status": "pending",
+        "status": "completed",
         "priority": "high"
       },
       "4": {
         "id": "4",
         "content": "Set up custom domain configuration",
         "details": "1. Configure blueoxjobs.eu for main website. 2. Configure admin.blueoxjobs.eu for admin portal. 3. Set up DNS records in Namecheap. 4. Verify SSL certificates.",
-        "status": "pending",
+        "status": "in_progress",
         "priority": "high"
       },
       "5": {
