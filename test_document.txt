@@ -1,0 +1,10 @@
+Test Document for Upload
+
+This is a test document created to test the document upload functionality of The Blue Ox Student Portal.
+
+Document Details:
+- Created: 2025-12-11
+- Purpose: Testing document upload feature
+- Content: Sample text content for testing
+
+This document should be successfully uploaded to test the Document Safe functionality.

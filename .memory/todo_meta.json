@@ -1,0 +1,41 @@
+{
+  "todos": {
+    "Coordinator": {
+      "1": {
+        "id": "1",
+        "content": "Prepare project for GitHub deployment",
+        "details": "1. Create .gitignore files for both main website and admin portal. 2. Clean up any sensitive files. 3. Ensure proper project structure.",
+        "status": "completed",
+        "priority": "high"
+      },
+      "2": {
+        "id": "2",
+        "content": "Create GitHub repository and push code",
+        "details": "1. Initialize git repositories for both projects. 2. Add, commit, and push code to GitHub. 3. Create repository with proper README files.",
+        "status": "in_progress",
+        "priority": "high"
+      },
+      "3": {
+        "id": "3",
+        "content": "Configure Vercel deployment",
+        "details": "1. Connect GitHub repository to Vercel. 2. Configure build settings for both main site and admin portal. 3. Set up environment variables in Vercel.",
+        "status": "pending",
+        "priority": "high"
+      },
+      "4": {
+        "id": "4",
+        "content": "Set up custom domain configuration",
+        "details": "1. Configure blueoxjobs.eu for main website. 2. Configure admin.blueoxjobs.eu for admin portal. 3. Set up DNS records in Namecheap. 4. Verify SSL certificates.",
+        "status": "pending",
+        "priority": "high"
+      },
+      "5": {
+        "id": "5",
+        "content": "Test and verify production deployment",
+        "details": "1. Test main website functionality on blueoxjobs.eu. 2. Test admin portal on admin.blueoxjobs.eu. 3. Verify database connectivity and all features work in production.",
+        "status": "pending",
+        "priority": "medium"
+      }
+    }
+  }
+}
