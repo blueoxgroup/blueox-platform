@@ -1,0 +1,56 @@
+17:59:33.129 Running build in Washington, D.C., USA (East) – iad1
+17:59:33.130 Build machine configuration: 2 cores, 8 GB
+17:59:33.509 Cloning github.com/blueoxgroup/blueox-platform (Branch: main, Commit: b436610)
+17:59:33.510 Previous build caches not available.
+17:59:34.662 Cloning completed: 1.153s
+17:59:35.070 Running "git diff --quiet HEAD^ HEAD -- . || exit 1"
+17:59:35.214 Running "vercel build"
+17:59:35.646 Vercel CLI 49.1.2
+17:59:36.608 Running "install" command: `pnpm install`...
+17:59:37.272  WARN  GET https://registry.npmjs.org/@eslint%2Fjs error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.273  WARN  GET https://registry.npmjs.org/@types%2Fnode error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.274  WARN  GET https://registry.npmjs.org/@types%2Freact error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.274  WARN  GET https://registry.npmjs.org/@types%2Freact-dom error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.274  WARN  GET https://registry.npmjs.org/@types%2Freact-router-dom error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.276  WARN  GET https://registry.npmjs.org/@vitejs%2Fplugin-react error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.276  WARN  GET https://registry.npmjs.org/eslint error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.276  WARN  GET https://registry.npmjs.org/eslint-plugin-react-hooks error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.277  WARN  GET https://registry.npmjs.org/eslint-plugin-react-refresh error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.277  WARN  GET https://registry.npmjs.org/globals error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.278  WARN  GET https://registry.npmjs.org/typescript error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.278  WARN  GET https://registry.npmjs.org/typescript-eslint error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.278  WARN  GET https://registry.npmjs.org/vite error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.278  WARN  GET https://registry.npmjs.org/autoprefixer error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.278  WARN  GET https://registry.npmjs.org/postcss error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:37.279  WARN  GET https://registry.npmjs.org/tailwindcss error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+17:59:47.275  WARN  GET https://registry.npmjs.org/@eslint%2Fjs error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.276  WARN  GET https://registry.npmjs.org/@types%2Fnode error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.276  WARN  GET https://registry.npmjs.org/@types%2Freact error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.276  WARN  GET https://registry.npmjs.org/@types%2Freact-dom error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.276  WARN  GET https://registry.npmjs.org/@types%2Freact-router-dom error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.278  WARN  GET https://registry.npmjs.org/@vitejs%2Fplugin-react error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.278  WARN  GET https://registry.npmjs.org/eslint error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.278  WARN  GET https://registry.npmjs.org/eslint-plugin-react-hooks error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.278  WARN  GET https://registry.npmjs.org/eslint-plugin-react-refresh error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.278  WARN  GET https://registry.npmjs.org/globals error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.279  WARN  GET https://registry.npmjs.org/typescript error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.279  WARN  GET https://registry.npmjs.org/typescript-eslint error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.279  WARN  GET https://registry.npmjs.org/vite error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.279  WARN  GET https://registry.npmjs.org/autoprefixer error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.279  WARN  GET https://registry.npmjs.org/postcss error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+17:59:47.279  WARN  GET https://registry.npmjs.org/tailwindcss error (ERR_INVALID_THIS). Will retry in 1 minute. 1 retries left.
+18:00:47.275  ERR_PNPM_META_FETCH_FAIL  GET https://registry.npmjs.org/@eslint%2Fjs: Value of "this" must be of type URLSearchParams
+18:00:47.278  WARN  GET https://registry.npmjs.org/@hookform%2Fresolvers error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.282  WARN  GET https://registry.npmjs.org/vite-plugin-source-identifier error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.282  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-accordion error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.282  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-alert-dialog error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.282  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-aspect-ratio error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.284  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-avatar error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.284  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-checkbox error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.285  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-collapsible error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.289  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-context-menu error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.289  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-dialog error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.289  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-dropdown-menu error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.290  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-hover-card error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.290  WARN  GET https://registry.npmjs.org/@radix-ui%2Freact-label error (ERR_INVALID_THIS). Will retry in 10 seconds. 2 retries left.
+18:00:47.297 Error: Command "pnpm install" exited with 1
