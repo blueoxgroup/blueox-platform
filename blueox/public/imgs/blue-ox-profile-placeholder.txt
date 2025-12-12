@@ -1,0 +1,9 @@
+Blue OX Character Profile Image
+This file represents the Blue OX character profile image that should be placed at: blueox/public/imgs/blue-ox-profile.jpg
+
+The image should be a friendly, minion-like character representing the Blue OX persona.
+Image dimensions: 400x400px recommended
+Format: JPG or PNG
+
+Note: The actual image file needs to be uploaded manually as it's too large for the API.
+The code has been updated to reference this image path.
