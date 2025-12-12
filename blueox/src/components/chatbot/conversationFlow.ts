@@ -36,11 +36,11 @@ export const INITIAL_CHOICES: ChatChoice[] = [
   }
 ];
 
-export const WELCOME_MESSAGE = `Hey there! I'm Emmanuel, your Blue Ox Career Consultant.
+export const WELCOME_MESSAGE = `Hey there! I'm Emmanuel, and I'm here to help you find your European dream.
 
-I've helped hundreds of people just like you find amazing opportunities in Europe. Originally from Nigeria myself, I know exactly what you're going through.
+I've helped hundreds of people just like you find amazing opportunities in Europe. Originally from Nigeria myself, I totally get what you're going through - the excitement, the questions, maybe even some worries. But trust me, you've got this!
 
-So tell me - what brings you here today?`;
+So tell me - what brings you to Blue Ox today?`;
 
 export const WHATSAPP_LINK = "https://wa.me/message/F6QOLB6IS3VHF1";
 

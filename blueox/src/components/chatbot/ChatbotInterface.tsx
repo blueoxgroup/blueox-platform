@@ -415,7 +415,7 @@ const ChatbotInterface: React.FC = () => {
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-coral font-space text-sm transition-colors"
               >
-                Talk to customers
+                Talk to previous customers
               </a>
               <a 
                 href={WHATSAPP_LINK} 
@@ -461,7 +461,7 @@ const ChatbotInterface: React.FC = () => {
                   rel="noopener noreferrer"
                   className="text-gray-300 hover:text-coral font-space text-sm"
                 >
-                  Talk to customers
+                  Talk to previous customers
                 </a>
                 <a 
                   href={WHATSAPP_LINK} 
