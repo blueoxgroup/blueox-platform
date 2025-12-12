@@ -1,12 +1,12 @@
 import { PathConfig, ChatChoice } from './types';
 
-// Emmanuel's Character Profile
+// Blue OX Character Profile
 export const CHARACTER = {
-  name: "Emmanuel Okonkwo",
-  role: "Blue Ox Career Consultant",
-  profilePic: "/images/emmanuel-profile.png",
-  greeting: "Hey there! I'm Emmanuel.",
-  status: "Online - Ready to help"
+  name: "Blue OX",
+  role: "",
+  profilePic: "/imgs/blue-ox-profile.jpg",
+  greeting: "Hey there! I'm Blue OX, your buddy for finding awesome opportunities in Europe!",
+  status: "Online - Ready to help you shine!"
 };
 
 export const INITIAL_CHOICES: ChatChoice[] = [
@@ -32,26 +32,26 @@ export const INITIAL_CHOICES: ChatChoice[] = [
     id: 'company',
     label: "I'm a company looking to hire",
     value: 'company',
-    description: 'Find qualified candidates'
+    description: 'Connect with talented professionals from around the world'
   }
 ];
 
-export const WELCOME_MESSAGE = `Hey there! I'm Emmanuel, and I'm here to help you find your European dream.
+export const WELCOME_MESSAGE = `Hey there! I'm Blue OX, your buddy for finding awesome opportunities in Europe! What's your European dream?
 
-I've helped hundreds of people just like you find amazing opportunities in Europe. Originally from Nigeria myself, I totally get what you're going through - the excitement, the questions, maybe even some worries. But trust me, you've got this!
+I've helped tons of amazing people just like you discover incredible opportunities across Europe. This is gonna be so exciting - you're gonna love what we find together!
 
-So tell me - what brings you to Blue Ox today?`;
+You've got this! I believe in you! So tell me - what brings you here today?`;
 
 export const WHATSAPP_LINK = "https://wa.me/message/F6QOLB6IS3VHF1";
 
 // Company flow - redirect to WhatsApp
-export const COMPANY_REDIRECT_MESSAGE = `That's great to hear! We love working with companies who want to tap into amazing African talent.
+export const COMPANY_REDIRECT_MESSAGE = `Oh yeah! That's exactly what we're looking for! We help companies connect with talented professionals from around the world.
 
 For the best experience, let's chat directly. Our team can walk you through everything and answer all your questions.
 
 Reach out to us here: ${WHATSAPP_LINK}
 
-Looking forward to hearing from you!`;
+This is gonna be great! Looking forward to hearing from you!`;
 
 export const PATH_CONFIGS: Record<string, PathConfig> = {
   student_university: {
@@ -60,35 +60,35 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
     steps: [
       {
         id: 'education_level',
-        question: "Awesome, you're looking to study in Europe! That's exciting.\n\nLet me ask you a few quick questions so I can point you in the right direction.\n\nFirst up - what's your current education level?",
+        question: "Awesome! You're looking to study in Europe! This is gonna be so exciting!\n\nLet me ask you a few quick questions so I can point you in the right direction.\n\nFirst up - what's your current education level?",
         inputType: 'select',
         field: 'educationLevel',
         inputOptions: ["Bachelor's Degree", "Master's Degree"]
       },
       {
         id: 'target_countries',
-        question: "Perfect! Now, which European countries are you interested in?\n\nPick as many as you like - keeping your options open is always smart!",
+        question: "Perfect! Now, which European countries are you interested in?\n\nPick as many as you like - keeping your options open is always smart! You can do it!",
         inputType: 'multiselect',
         field: 'targetCountries',
         inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'France', 'Spain', 'Italy', 'Other']
       },
       {
         id: 'field_of_study',
-        question: "What fields are you interested in studying?\n\nYou can choose multiple - I know it's hard to pick just one!",
+        question: "What fields are you interested in studying?\n\nYou can choose multiple - I know it's hard to pick just one! Don't worry, I'll walk you through everything step by step!",
         inputType: 'multiselect',
         field: 'fieldOfStudy',
         inputOptions: ['Engineering', 'Business & Economics', 'Computer Science', 'Medicine & Health', 'Arts & Humanities', 'Natural Sciences', 'Law', 'Other']
       },
       {
         id: 'budget',
-        question: "Let's talk money - what's your approximate annual budget for tuition and living expenses?\n\nBe honest, it helps me find the right fit for you.",
+        question: "Let's talk money - what's your approximate annual budget for tuition and living expenses?\n\nBe honest, it helps me find the right fit for you. Together we'll make it happen!",
         inputType: 'select',
         field: 'budget',
         inputOptions: ['Under 5,000 EUR', '5,000 - 10,000 EUR', '10,000 - 15,000 EUR', '15,000 - 20,000 EUR', 'Over 20,000 EUR']
       },
       {
         id: 'start_date',
-        question: "When are you hoping to start your studies?",
+        question: "When are you hoping to start your studies? We're gonna make your European dreams come true!",
         inputType: 'select',
         field: 'startDate',
         inputOptions: ['Spring 2025', 'Fall 2025', 'Spring 2026', 'Fall 2026', 'Not sure yet']
@@ -110,35 +110,35 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
     steps: [
       {
         id: 'target_countries',
-        question: "Looking for work in Europe? You've come to the right place!\n\nWhich countries are you interested in working in?",
+        question: "Looking for work in Europe? You've come to the right place! This is gonna be awesome!\n\nWhich countries are you interested in working in?",
         inputType: 'multiselect',
         field: 'targetCountries',
         inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'Belgium', 'Sweden', 'Norway', 'Any']
       },
       {
         id: 'skills',
-        question: "Tell me about your skills - what are you good at?\n\nSelect all that apply.",
+        question: "Tell me about your skills - what are you good at?\n\nSelect all that apply. I totally get it - you've got lots of talents!",
         inputType: 'multiselect',
         field: 'skills',
         inputOptions: ['Technical/Trade Skills', 'Language Skills', 'Management', 'Customer Service', 'Healthcare', 'IT/Technology', 'Driving', 'Construction', 'Manufacturing', 'Hospitality', 'Agriculture', 'Other']
       },
       {
         id: 'experience_years',
-        question: "How many years of experience do you have?",
+        question: "How many years of experience do you have? You can do it!",
         inputType: 'select',
         field: 'experienceYears',
         inputOptions: ['Less than 1 year', '1-2 years', '3-5 years', '5-10 years', 'More than 10 years']
       },
       {
         id: 'salary_expectation',
-        question: "What monthly salary are you looking for? (in EUR)\n\nDon't undersell yourself!",
+        question: "What monthly salary are you looking for? (in EUR)\n\nDon't undersell yourself - you're worth it!",
         inputType: 'select',
         field: 'salaryExpectation',
         inputOptions: ['1,000 - 1,500 EUR', '1,500 - 2,000 EUR', '2,000 - 2,500 EUR', '2,500 - 3,000 EUR', 'Over 3,000 EUR', 'Negotiable']
       },
       {
         id: 'availability',
-        question: "When can you start a new position?",
+        question: "When can you start a new position? We're gonna find something perfect for you!",
         inputType: 'select',
         field: 'availability',
         inputOptions: ['Immediately', 'Within 1 month', 'Within 3 months', 'Within 6 months', 'Flexible']
@@ -161,21 +161,21 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
     steps: [
       {
         id: 'education_level',
-        question: "Nice! A student looking for work - I love the hustle!\n\nWhat's your current education level?",
+        question: "Nice! A student looking for work - I love the hustle! You've got this!\n\nWhat's your current education level?",
         inputType: 'select',
         field: 'educationLevel',
         inputOptions: ["Bachelor's Degree", "Master's Degree"]
       },
       {
         id: 'target_countries',
-        question: "Which European country are you interested in?",
+        question: "Which European country are you interested in? This is gonna be so exciting!",
         inputType: 'multiselect',
         field: 'targetCountries',
         inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'France', 'Spain', 'Italy', 'Other']
       },
       {
         id: 'start_date',
-        question: "When would you like to start working?",
+        question: "When would you like to start working? Together we'll make it happen!",
         inputType: 'select',
         field: 'startDate',
         inputOptions: ['Immediately', 'Within 1 month', 'Within 3 months', 'Within 6 months', 'Flexible']
@@ -204,36 +204,36 @@ export const getPreFormMessage = (path: string, jobSelected?: string): string =>
   const messages: Record<string, string> = {
     student_university: `This is looking great! I've got a good picture of what you're looking for.
 
-Now I just need a few details from you so our team can start finding the perfect schools. Fill out this quick form and we'll take it from there!`,
+Now I just need a few details from you so our team can start finding the perfect schools. Fill out this quick form and we'll take it from there! You can do it!`,
     
     worker_job: jobSelected 
-      ? `Excellent choice! "${jobSelected}" looks like a great fit for you.
+      ? `Excellent choice! "${jobSelected}" looks like a great fit for you! Oh yeah!
 
 Let me get your details so we can move forward with your application.`
-      : `Based on what you've told me, I think we can find you something great.
+      : `Based on what you've told me, I think we can find you something great!
 
-Fill out this form and upload your documents - then we'll get the ball rolling!`,
+Fill out this form and upload your documents - then we'll get the ball rolling! I believe in you!`,
     
     student_job: jobSelected
-      ? `Nice pick! "${jobSelected}" could be perfect for you.
+      ? `Nice pick! "${jobSelected}" could be perfect for you! This is gonna be awesome!
 
 Just need your details and documents to get your application started.`
       : `I've got some good options in mind for you!
 
-Let's get your details down so we can connect you with the right opportunities.`
+Let's get your details down so we can connect you with the right opportunities. You've got this!`
   };
   
-  return messages[path] || "Let's get your details!";
+  return messages[path] || "Let's get your details! You can do it!";
 };
 
 export const getCompletionMessage = (path: string, data: Record<string, unknown>): string => {
   const name = ((data.fullName || 'there') as string).split(' ')[0];
   
-  return `You're all set, ${name}!
+  return `You're all set, ${name}! This is so exciting!
 
 Your application has been submitted and our team is already on it. We'll reach out to you on WhatsApp within 24-48 hours.
 
-In the meantime, keep an eye on your messages. If you have any questions, don't hesitate to reach out!
+In the meantime, keep an eye on your messages. If you have any questions, don't hesitate to reach out! I believe in you - we're gonna make your European dreams come true!
 
 Follow up your progress on WhatsApp: ${WHATSAPP_LINK}`;
 };
