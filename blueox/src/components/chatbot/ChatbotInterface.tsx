@@ -51,6 +51,7 @@ const ChatbotInterface: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showJobSelection, setShowJobSelection] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset conversation
   const resetConversation = () => {
@@ -302,8 +303,11 @@ const ChatbotInterface: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userPath) return;
-    
+    if (!userPath || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setIsTyping(true);
+
     const config = PATH_CONFIGS[userPath];
     const allData = {
       ...collectedData,
@@ -337,7 +341,9 @@ const ChatbotInterface: React.FC = () => {
     }
 
     setShowForm(false);
+    setIsTyping(false);
     setIsComplete(true);
+    setIsSubmitting(false);
     addBotMessage(getCompletionMessage(userPath, allData));
   };
 
@@ -688,9 +694,10 @@ const ChatbotInterface: React.FC = () => {
                   ))}
                   <button
                     type="submit"
-                    className="w-full bg-coral hover:bg-coral-dark text-white font-space font-semibold py-3 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    disabled={isSubmitting}
+                    className="w-full bg-coral hover:bg-coral-dark disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-space font-semibold py-3 rounded-lg transition-colors flex items-center justify-center space-x-2"
                   >
-                    <span>Submit Application</span>
+                    <span>{isSubmitting ? 'Submitting...' : 'Submit Application'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>

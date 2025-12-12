@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileText, CreditCard, Briefcase, CheckCircle, Clock, Download, Plus, X, Search, LogOut, Shield, Eye, EyeOff } from 'lucide-react';
+import { Users, FileText, CreditCard, Briefcase, CheckCircle, Clock, Download, Plus, X, Search, LogOut, Shield, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { supabase, Client, Application, Document as DocType, Payment, Job, ClientPaymentPhases } from './lib/supabase';
 
-type Tab = 'clients' | 'applications' | 'documents' | 'payments' | 'jobs';
+type Tab = 'applications' | 'jobs';
 
 const LoginPage: React.FC = () => {
   const { signIn } = useAuth();
@@ -99,7 +99,7 @@ const LoginPage: React.FC = () => {
 
 const AdminDashboard: React.FC = () => {
   const { client: currentClient, signOut, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<Tab>('clients');
+  const [activeTab, setActiveTab] = useState<Tab>('applications');
   const [clients, setClients] = useState<Client[]>([]);
   const [applications, setApplications] = useState<(Application & { client?: Client })[]>([]);
   const [documents, setDocuments] = useState<(DocType & { client?: Client })[]>([]);
@@ -245,6 +245,12 @@ const AdminDashboard: React.FC = () => {
     fetchAllData();
   };
 
+  const deleteApplication = async (id: string) => {
+    if (!confirm('Delete this application? This action cannot be undone.')) return;
+    await supabase.from('applications').delete().eq('id', id);
+    fetchAllData();
+  };
+
   const downloadDocument = async (doc: DocType) => {
     const { data } = await supabase.storage.from('client-documents').download(doc.file_path);
     if (data) {
@@ -316,20 +322,14 @@ const AdminDashboard: React.FC = () => {
 
   // Define tabs outside the component to prevent recreation on every render
   const baseTabs = [
-    { id: 'clients', label: 'Clients', icon: Users },
     { id: 'applications', label: 'Applications', icon: FileText },
-    { id: 'documents', label: 'Documents', icon: FileText },
-    { id: 'payments', label: 'Payment Phases', icon: CreditCard },
     { id: 'jobs', label: 'Jobs', icon: Briefcase },
   ] as const;
 
   // Create tabs with current counts
   const tabs = baseTabs.map(tab => ({
     ...tab,
-    count: tab.id === 'clients' ? clients.length :
-           tab.id === 'applications' ? applications.length :
-           tab.id === 'documents' ? documents.length :
-           tab.id === 'payments' ? paymentPhases.length :
+    count: tab.id === 'applications' ? applications.length :
            tab.id === 'jobs' ? jobs.length : 0
   }));
 
@@ -389,17 +389,6 @@ const AdminDashboard: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="flex space-x-6 overflow-x-auto">
             <button
-              onClick={() => setActiveTab('clients')}
-              className={`flex items-center py-4 border-b-2 font-medium whitespace-nowrap transition ${
-                activeTab === 'clients' ? 'border-coral text-coral' : 'border-transparent text-gray-600 hover:text-coral'
-              }`}
-            >
-              <Users className="w-5 h-5 mr-2" />
-              Clients
-              <span className="ml-2 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">{clients.length}</span>
-            </button>
-            
-            <button
               onClick={() => setActiveTab('applications')}
               className={`flex items-center py-4 border-b-2 font-medium whitespace-nowrap transition ${
                 activeTab === 'applications' ? 'border-coral text-coral' : 'border-transparent text-gray-600 hover:text-coral'
@@ -409,29 +398,7 @@ const AdminDashboard: React.FC = () => {
               Applications
               <span className="ml-2 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">{applications.length}</span>
             </button>
-            
-            <button
-              onClick={() => setActiveTab('documents')}
-              className={`flex items-center py-4 border-b-2 font-medium whitespace-nowrap transition ${
-                activeTab === 'documents' ? 'border-coral text-coral' : 'border-transparent text-gray-600 hover:text-coral'
-              }`}
-            >
-              <FileText className="w-5 h-5 mr-2" />
-              Documents
-              <span className="ml-2 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">{documents.length}</span>
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('payments')}
-              className={`flex items-center py-4 border-b-2 font-medium whitespace-nowrap transition ${
-                activeTab === 'payments' ? 'border-coral text-coral' : 'border-transparent text-gray-600 hover:text-coral'
-              }`}
-            >
-              <CreditCard className="w-5 h-5 mr-2" />
-              Payment Phases
-              <span className="ml-2 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">{paymentPhases.length}</span>
-            </button>
-            
+
             <button
               onClick={() => setActiveTab('jobs')}
               className={`flex items-center py-4 border-b-2 font-medium whitespace-nowrap transition ${
@@ -454,225 +421,56 @@ const AdminDashboard: React.FC = () => {
           </div>
         ) : (
           <>
-            {activeTab === 'clients' && (
-              <div>
-                <div className="mb-4 flex items-center">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search clients..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
-                  <table className="w-full min-w-[600px]">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Role</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Joined</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {filteredClients.map((c) => (
-                        <tr key={c.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 font-medium text-navy">{c.full_name}</td>
-                          <td className="px-4 py-3 text-gray-600">{c.email}</td>
-                          <td className="px-4 py-3">{getStatusBadge(c.role)}</td>
-                          <td className="px-4 py-3 text-sm text-gray-500">{new Date(c.created_at).toLocaleDateString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {filteredClients.length === 0 && <p className="text-center py-8 text-gray-500">No clients found.</p>}
-                </div>
-              </div>
-            )}
-
             {activeTab === 'applications' && (
               <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
                 <table className="w-full min-w-[700px]">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Client</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Applicant Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Path</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Country</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Details</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {applications.map((app) => (
                       <tr key={app.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-navy">{app.client?.full_name || 'Unknown'}</td>
-                        <td className="px-4 py-3 capitalize">{app.application_type}</td>
+                        <td className="px-4 py-3 font-medium text-navy">{app.data?.fullName || app.data?.name || 'Anonymous'}</td>
+                        <td className="px-4 py-3 capitalize">{app.user_path || app.application_type || '-'}</td>
                         <td className="px-4 py-3">{getStatusBadge(app.status)}</td>
-                        <td className="px-4 py-3 text-gray-600">{app.target_country || '-'}</td>
-                        <td className="px-4 py-3">
-                          <select
-                            value={app.status}
-                            onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
-                            className="text-sm border rounded px-2 py-1"
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="in_review">In Review</option>
-                            <option value="documents_requested">Docs Requested</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {applications.length === 0 && <p className="text-center py-8 text-gray-500">No applications yet.</p>}
-              </div>
-            )}
-
-            {activeTab === 'documents' && (
-              <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
-                <table className="w-full min-w-[700px]">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Client</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Document</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Type</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {documents.map((doc) => (
-                      <tr key={doc.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-navy">{doc.client?.full_name || 'Unknown'}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{doc.file_name}</td>
-                        <td className="px-4 py-3">{doc.document_type}</td>
-                        <td className="px-4 py-3">
-                          {doc.is_verified ? (
-                            <span className="flex items-center text-green-600 text-sm">
-                              <CheckCircle className="w-4 h-4 mr-1" /> Verified
-                            </span>
-                          ) : (
-                            <span className="flex items-center text-yellow-600 text-sm">
-                              <Clock className="w-4 h-4 mr-1" /> Pending
-                            </span>
-                          )}
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {app.data?.email && <div>Email: {app.data.email}</div>}
+                          {app.data?.phone && <div>Phone: {app.data.phone}</div>}
+                          {app.data?.whatsapp && <div>WhatsApp: {app.data.whatsapp}</div>}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex space-x-2">
-                            <button onClick={() => downloadDocument(doc)} className="text-blue-600 hover:text-blue-800">
-                              <Download className="w-4 h-4" />
+                          <div className="flex items-center space-x-2">
+                            <select
+                              value={app.status}
+                              onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
+                              className="text-sm border rounded px-2 py-1"
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="in_review">In Review</option>
+                              <option value="documents_requested">Docs Requested</option>
+                              <option value="approved">Approved</option>
+                              <option value="rejected">Rejected</option>
+                            </select>
+                            <button
+                              onClick={() => deleteApplication(app.id)}
+                              className="text-red-600 hover:text-red-800 transition"
+                              title="Delete application"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
-                            {!doc.is_verified && (
-                              <button onClick={() => verifyDocument(doc.id)} className="text-green-600 hover:text-green-800">
-                                <CheckCircle className="w-4 h-4" />
-                              </button>
-                            )}
                           </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                {documents.length === 0 && <p className="text-center py-8 text-gray-500">No documents uploaded yet.</p>}
-              </div>
-            )}
-
-            {activeTab === 'payments' && (
-              <div>
-                <div className="mb-4">
-                  <h2 className="text-xl font-orbitron font-bold text-navy mb-2">Payment Phase Tracking</h2>
-                  <p className="text-gray-600 text-sm">Track the 3-phase payment journey for each client</p>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
-                  <table className="w-full min-w-[900px]">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Client</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phase 1: Down Payment</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phase 2: Embassy Fee</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phase 3: After Visa Fee</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Notes</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {paymentPhases.map((phase) => (
-                        <tr key={phase.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 font-medium text-navy">{phase.client?.full_name || 'Unknown'}</td>
-                          <td className="px-4 py-3">
-                            <div className="space-y-1">
-                              <button
-                                onClick={() => togglePaymentPhase(phase.id, 'phase_1_down_payment', phase.phase_1_down_payment)}
-                                className={`w-full text-left px-3 py-2 rounded-lg font-medium text-sm transition ${
-                                  phase.phase_1_down_payment 
-                                    ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                                    : 'bg-red-100 text-red-800 hover:bg-red-200'
-                                }`}
-                              >
-                                {phase.phase_1_down_payment ? '✓ Paid' : '✗ Not Paid'}
-                              </button>
-                              {phase.phase_1_amount > 0 && (
-                                <p className="text-xs text-gray-600">€{phase.phase_1_amount}</p>
-                              )}
-                              {phase.phase_1_date && (
-                                <p className="text-xs text-gray-500">{new Date(phase.phase_1_date).toLocaleDateString()}</p>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="space-y-1">
-                              <button
-                                onClick={() => togglePaymentPhase(phase.id, 'phase_2_embassy_fee', phase.phase_2_embassy_fee)}
-                                className={`w-full text-left px-3 py-2 rounded-lg font-medium text-sm transition ${
-                                  phase.phase_2_embassy_fee 
-                                    ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                                    : 'bg-red-100 text-red-800 hover:bg-red-200'
-                                }`}
-                              >
-                                {phase.phase_2_embassy_fee ? '✓ Paid' : '✗ Not Paid'}
-                              </button>
-                              {phase.phase_2_amount > 0 && (
-                                <p className="text-xs text-gray-600">€{phase.phase_2_amount}</p>
-                              )}
-                              {phase.phase_2_date && (
-                                <p className="text-xs text-gray-500">{new Date(phase.phase_2_date).toLocaleDateString()}</p>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="space-y-1">
-                              <button
-                                onClick={() => togglePaymentPhase(phase.id, 'phase_3_after_visa_fee', phase.phase_3_after_visa_fee)}
-                                className={`w-full text-left px-3 py-2 rounded-lg font-medium text-sm transition ${
-                                  phase.phase_3_after_visa_fee 
-                                    ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                                    : 'bg-red-100 text-red-800 hover:bg-red-200'
-                                }`}
-                              >
-                                {phase.phase_3_after_visa_fee ? '✓ Paid' : '✗ Not Paid'}
-                              </button>
-                              {phase.phase_3_amount > 0 && (
-                                <p className="text-xs text-gray-600">€{phase.phase_3_amount}</p>
-                              )}
-                              {phase.phase_3_date && (
-                                <p className="text-xs text-gray-500">{new Date(phase.phase_3_date).toLocaleDateString()}</p>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-600 max-w-xs">
-                            {phase.notes || '-'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {paymentPhases.length === 0 && <p className="text-center py-8 text-gray-500">No payment phase records yet.</p>}
-                </div>
+                {applications.length === 0 && <p className="text-center py-8 text-gray-500">No applications yet.</p>}
               </div>
             )}
 
