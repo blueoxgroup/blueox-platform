@@ -19,6 +19,8 @@
 **/eggs/
 **/.eggs/
 **/lib/
+# But keep src/lib folders for frontend code
+!**/src/lib/
 **/lib64/
 **/parts/
 **/sdist/

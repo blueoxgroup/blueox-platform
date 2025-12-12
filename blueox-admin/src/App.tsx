@@ -436,13 +436,13 @@ const AdminDashboard: React.FC = () => {
                   <tbody className="divide-y">
                     {applications.map((app) => (
                       <tr key={app.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-navy">{app.data?.fullName || app.data?.name || 'Anonymous'}</td>
+                        <td className="px-4 py-3 font-medium text-navy">{String(app.data?.fullName || app.data?.name || 'Anonymous')}</td>
                         <td className="px-4 py-3 capitalize">{app.user_path || app.application_type || '-'}</td>
                         <td className="px-4 py-3">{getStatusBadge(app.status)}</td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {app.data?.email && <div>Email: {app.data.email}</div>}
-                          {app.data?.phone && <div>Phone: {app.data.phone}</div>}
-                          {app.data?.whatsapp && <div>WhatsApp: {app.data.whatsapp}</div>}
+                          {app.data?.email && <div>Email: {String(app.data.email)}</div>}
+                          {app.data?.phone && <div>Phone: {String(app.data.phone)}</div>}
+                          {app.data?.whatsapp && <div>WhatsApp: {String(app.data.whatsapp)}</div>}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-2">
