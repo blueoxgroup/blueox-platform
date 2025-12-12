@@ -16,17 +16,20 @@ import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
-// Sample jobs for matching
-const SAMPLE_JOBS: Job[] = [
-  { id: '1', title: 'Warehouse Worker', company: 'LogiPack GmbH', location: 'Germany', salary: '1,800 - 2,200 EUR/month', type: 'Full-time', skills: ['Manufacturing', 'Driving'], description: 'Sorting and packing in modern warehouse facility' },
-  { id: '2', title: 'Care Assistant', company: 'SeniorCare Netherlands', location: 'Netherlands', salary: '2,000 - 2,500 EUR/month', type: 'Full-time', skills: ['Healthcare', 'Customer Service'], description: 'Elderly care in residential homes' },
-  { id: '3', title: 'Construction Helper', company: 'BuildRight Poland', location: 'Poland', salary: '1,500 - 1,900 EUR/month', type: 'Full-time', skills: ['Construction', 'Technical/Trade Skills'], description: 'General construction assistance' },
-  { id: '4', title: 'Kitchen Staff', company: 'EuroHotel Group', location: 'Austria', salary: '1,600 - 2,000 EUR/month', type: 'Full-time', skills: ['Hospitality', 'Customer Service'], description: 'Food preparation and kitchen duties' },
-  { id: '5', title: 'Farm Worker', company: 'GreenFields Agriculture', location: 'Netherlands', salary: '1,700 - 2,100 EUR/month', type: 'Seasonal', skills: ['Agriculture'], description: 'Seasonal agricultural work' },
-  { id: '6', title: 'IT Support Technician', company: 'TechServe Czech', location: 'Czech Republic', salary: '2,200 - 2,800 EUR/month', type: 'Full-time', skills: ['IT/Technology', 'Customer Service'], description: 'Technical support and troubleshooting' },
-  { id: '7', title: 'Delivery Driver', company: 'FastLogistics', location: 'Germany', salary: '2,000 - 2,400 EUR/month', type: 'Full-time', skills: ['Driving'], description: 'Package delivery in urban areas' },
-  { id: '8', title: 'Hotel Receptionist', company: 'Grand Hotel Vienna', location: 'Austria', salary: '1,900 - 2,300 EUR/month', type: 'Full-time', skills: ['Hospitality', 'Language Skills', 'Customer Service'], description: 'Front desk operations' },
-];
+// Skill mapping for job matching
+const SKILL_KEYWORDS: Record<string, string[]> = {
+  'Technical/Trade Skills': ['technical', 'trade', 'mechanic', 'electrician', 'plumber', 'welder'],
+  'Manufacturing': ['manufacturing', 'factory', 'production', 'warehouse', 'assembly'],
+  'Healthcare': ['healthcare', 'care', 'nurse', 'medical', 'hospital', 'elderly'],
+  'IT/Technology': ['it', 'technology', 'software', 'developer', 'tech', 'computer'],
+  'Hospitality': ['hotel', 'restaurant', 'hospitality', 'kitchen', 'chef', 'reception'],
+  'Construction': ['construction', 'building', 'builder', 'carpenter'],
+  'Driving': ['driver', 'driving', 'delivery', 'logistics', 'transport'],
+  'Agriculture': ['farm', 'agriculture', 'agricultural', 'harvest'],
+  'Customer Service': ['customer', 'service', 'reception', 'support'],
+  'Language Skills': ['language', 'translator', 'interpreter'],
+  'Management': ['manager', 'management', 'supervisor', 'team lead'],
+};
 
 const ChatbotInterface: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -115,15 +118,75 @@ const ChatbotInterface: React.FC = () => {
     }]);
   };
 
-  const matchJobs = (data: CollectedData): Job[] => {
+  // Fetch live jobs from Supabase and match based on user preferences
+  const fetchAndMatchJobs = async (data: CollectedData): Promise<Job[]> => {
     const userSkills = (data.skills as string[]) || [];
     const userCountries = (data.targetCountries as string[]) || [];
     
-    return SAMPLE_JOBS.filter(job => {
-      const skillMatch = userSkills.length === 0 || userSkills.some(skill => job.skills.includes(skill)) || userSkills.includes('Other');
-      const countryMatch = userCountries.length === 0 || userCountries.includes(job.location) || userCountries.includes('Any') || userCountries.includes('Other');
-      return skillMatch && countryMatch;
-    }).slice(0, 5);
+    try {
+      // Fetch active jobs from Supabase
+      const { data: jobsData, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('is_active', true);
+      
+      if (error || !jobsData) {
+        console.error('Error fetching jobs:', error);
+        return [];
+      }
+
+      // Match jobs based on user preferences
+      const matchedJobs = jobsData.filter(job => {
+        // Country matching
+        const countryMatch = userCountries.length === 0 || 
+          userCountries.includes(job.country) || 
+          userCountries.includes('Any') || 
+          userCountries.includes('Other');
+        
+        if (!countryMatch) return false;
+
+        // Skill matching - check if job title/description contains skill keywords
+        if (userSkills.length === 0 || userSkills.includes('Other')) return true;
+        
+        const jobText = `${job.title} ${job.description} ${job.requirements || ''}`.toLowerCase();
+        
+        return userSkills.some(skill => {
+          const keywords = SKILL_KEYWORDS[skill] || [skill.toLowerCase()];
+          return keywords.some(keyword => jobText.includes(keyword));
+        });
+      });
+
+      // Sort by relevance (more keyword matches = higher score)
+      const scoredJobs = matchedJobs.map(job => {
+        const jobText = `${job.title} ${job.description}`.toLowerCase();
+        let score = 0;
+        userSkills.forEach(skill => {
+          const keywords = SKILL_KEYWORDS[skill] || [skill.toLowerCase()];
+          keywords.forEach(keyword => {
+            if (jobText.includes(keyword)) score++;
+          });
+        });
+        if (userCountries.includes(job.country)) score += 2;
+        return { ...job, score };
+      });
+
+      scoredJobs.sort((a, b) => b.score - a.score);
+      
+      // Convert to Job type format
+      return scoredJobs.slice(0, 5).map(job => ({
+        id: job.id,
+        title: job.title,
+        company: job.company || 'Blue Ox Partner',
+        location: job.country,
+        salary: job.salary_range,
+        type: job.job_type,
+        skills: [],
+        description: job.description
+      }));
+    } catch (err) {
+      console.error('Error in job matching:', err);
+      return [];
+    }
   };
 
   const handlePathSelect = (choice: ChatChoice) => {
@@ -159,7 +222,7 @@ const ChatbotInterface: React.FC = () => {
     }
   };
 
-  const processUserInput = (value: string | string[]) => {
+  const processUserInput = async (value: string | string[]) => {
     if (!userPath) return;
     
     const config = PATH_CONFIGS[userPath];
@@ -176,7 +239,9 @@ const ChatbotInterface: React.FC = () => {
     if (nextIndex >= config.steps.length) {
       // Check if we need job matching
       if (config.showJobMatching) {
-        const jobs = matchJobs(newData);
+        setIsTyping(true);
+        const jobs = await fetchAndMatchJobs(newData);
+        setIsTyping(false);
         setMatchedJobs(jobs);
         setTimeout(() => {
           if (jobs.length > 0) {
