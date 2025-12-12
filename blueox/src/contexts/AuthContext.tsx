@@ -1,16 +1,22 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase, Client } from '../lib/supabase';
+import { User, Session, AuthError } from '@supabase/supabase-js';
+import { supabase, Client, isSupabaseConfigured } from '../lib/supabase';
+
+interface SignUpResult {
+  error: Error | AuthError | null;
+  data?: { user: User | null };
+}
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   client: Client | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, role: 'student' | 'workforce') => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, role: 'student' | 'workforce') => Promise<SignUpResult>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | AuthError | null }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  isConfigured: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,15 +28,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   const fetchClient = async (userId: string) => {
-    const { data } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('auth_user_id', userId)
-      .single();
-    setClient(data);
+    if (!isSupabaseConfigured) return;
+    try {
+      const { data } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('auth_user_id', userId)
+        .single();
+      setClient(data);
+    } catch (err) {
+      console.error('Error fetching client:', err);
+    }
   };
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -54,9 +70,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: 'student' | 'workforce') => {
+  const signUp = async (email: string, password: string, fullName: string, role: 'student' | 'workforce'): Promise<SignUpResult> => {
+    if (!isSupabaseConfigured) {
+      return { error: new Error('Supabase is not configured. Please set up your environment variables.') };
+    }
+    
     const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) return { error };
+    if (error) return { error, data: { user: null } };
     
     if (data.user) {
       const { error: clientError } = await supabase.from('clients').insert({
@@ -65,17 +85,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         full_name: fullName,
         role,
       });
-      if (clientError) return { error: clientError };
+      if (clientError) return { error: clientError, data };
     }
-    return { error: null };
+    return { error: null, data };
   };
 
   const signIn = async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      return { error: new Error('Supabase is not configured. Please set up your environment variables.') };
+    }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
 
   const signOut = async () => {
+    if (!isSupabaseConfigured) return;
     await supabase.auth.signOut();
     setClient(null);
   };
@@ -90,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signIn,
       signOut,
       isAdmin: client?.role === 'admin',
+      isConfigured: isSupabaseConfigured,
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Send, ArrowRight, Check, User, Bot, Loader2 } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Send, ArrowRight, Check, User, Bot, RotateCcw, LogIn } from 'lucide-react';
 import { UserPath, ConversationMessage, ChatChoice, CollectedData } from './types';
 import { WELCOME_MESSAGE, INITIAL_CHOICES, PATH_CONFIGS, getCompletionMessage } from './conversationFlow';
-import { supabase } from '../../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
 const ChatbotInterface: React.FC = () => {
   const navigate = useNavigate();
-  const { user, signUp } = useAuth();
+  const { user, client } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -23,6 +23,22 @@ const ChatbotInterface: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [showAccountPrompt, setShowAccountPrompt] = useState(false);
+
+  // Reset conversation
+  const resetConversation = () => {
+    setMessages([]);
+    setUserPath(null);
+    setCurrentStepIndex(-1);
+    setCollectedData({});
+    setIsComplete(false);
+    setInputValue('');
+    setSelectedOptions([]);
+    setShowAccountPrompt(false);
+    localStorage.removeItem('blueox_conversation_data');
+    setTimeout(() => {
+      addBotMessage(WELCOME_MESSAGE, INITIAL_CHOICES);
+    }, 300);
+  };
 
   // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
@@ -207,18 +223,47 @@ const ChatbotInterface: React.FC = () => {
             <p className="text-xs text-gray-400 font-space">Online - Here to help</p>
           </div>
         </div>
-        {userPath && !isComplete && (
-          <div className="hidden md:flex items-center space-x-3">
-            <span className="text-xs text-gray-400 font-space">Progress</span>
-            <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-coral transition-all duration-500 rounded-full"
-                style={{ width: `${progress}%` }}
-              />
+        <div className="flex items-center space-x-4">
+          {userPath && !isComplete && (
+            <div className="hidden md:flex items-center space-x-3">
+              <span className="text-xs text-gray-400 font-space">Progress</span>
+              <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-coral transition-all duration-500 rounded-full"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span className="text-xs text-coral font-space">{Math.round(progress)}%</span>
             </div>
-            <span className="text-xs text-coral font-space">{Math.round(progress)}%</span>
-          </div>
-        )}
+          )}
+          {(userPath || isComplete) && (
+            <button
+              onClick={resetConversation}
+              className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+              title="Start Over"
+            >
+              <RotateCcw className="w-5 h-5" />
+            </button>
+          )}
+          {!user && (
+            <Link
+              to="/login"
+              className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors flex items-center space-x-1"
+              title="Sign In"
+            >
+              <LogIn className="w-5 h-5" />
+              <span className="hidden md:inline text-sm font-space">Sign In</span>
+            </Link>
+          )}
+          {user && client && (
+            <Link
+              to={`/apply/${client.role === 'student' ? 'student' : 'workforce'}`}
+              className="text-coral hover:text-coral-light font-space text-sm font-medium"
+            >
+              Go to Portal
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Messages Area */}

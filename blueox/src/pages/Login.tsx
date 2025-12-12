@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { LogIn, UserPlus, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { LogIn, UserPlus, AlertCircle, CheckCircle, X, MessageSquare } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface Toast {
   message: string;
   type: 'success' | 'error';
+}
+
+interface ConversationData {
+  userPath?: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  nationality?: string;
+  [key: string]: unknown;
 }
 
 const Login: React.FC = () => {
@@ -13,16 +23,61 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'student' | 'workforce'>('student');
+  const [phone, setPhone] = useState('');
+  const [role, setRole] = useState<'student' | 'workforce' | 'company'>('student');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
+  const [conversationData, setConversationData] = useState<ConversationData | null>(null);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get redirect path from query params or state
+  // Get redirect path and conversation data from state
   const from = (location.state as any)?.from?.pathname || '/';
+  const stateConversationData = (location.state as any)?.conversationData;
+
+  // Load conversation data from state or localStorage
+  useEffect(() => {
+    let data: ConversationData | null = null;
+    
+    if (stateConversationData) {
+      data = stateConversationData;
+    } else {
+      const stored = localStorage.getItem('blueox_conversation_data');
+      if (stored) {
+        try {
+          data = JSON.parse(stored);
+        } catch (e) {
+          console.error('Failed to parse stored conversation data');
+        }
+      }
+    }
+
+    if (data) {
+      setConversationData(data);
+      setIsLogin(false); // Switch to signup mode if we have conversation data
+      
+      // Pre-fill form fields
+      if (data.fullName) setFullName(data.fullName as string);
+      if (data.email) setEmail(data.email as string);
+      if (data.phone) setPhone(data.phone as string);
+      if (data.contactName) setFullName(data.contactName as string);
+      if (data.contactEmail) setEmail(data.contactEmail as string);
+      if (data.contactPhone) setPhone(data.contactPhone as string);
+      
+      // Set role based on userPath
+      if (data.userPath) {
+        if (data.userPath === 'company') {
+          setRole('company');
+        } else if (data.userPath.includes('student')) {
+          setRole('student');
+        } else {
+          setRole('workforce');
+        }
+      }
+    }
+  }, [stateConversationData]);
 
   // Auto-dismiss toast after 5 seconds
   useEffect(() => {
@@ -33,6 +88,36 @@ const Login: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [toast]);
+
+  const createApplicationFromConversation = async (userId: string, clientId: string, data: ConversationData) => {
+    if (!isSupabaseConfigured) {
+      console.log('Supabase not configured, skipping application creation');
+      return;
+    }
+
+    try {
+      const applicationType = data.userPath?.includes('student') 
+        ? (data.userPath === 'student_university' ? 'university' : 'student_job')
+        : (data.userPath === 'company' ? 'employer' : 'workforce');
+
+      const { error } = await supabase.from('applications').insert({
+        client_id: clientId,
+        application_type: applicationType,
+        target_country: Array.isArray(data.targetCountries) ? data.targetCountries.join(', ') : data.targetCountries,
+        status: 'pending',
+        conversation_context: data,
+      });
+
+      if (error) {
+        console.error('Error creating application:', error);
+      } else {
+        // Clear stored conversation data after successful save
+        localStorage.removeItem('blueox_conversation_data');
+      }
+    } catch (err) {
+      console.error('Error creating application:', err);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +130,21 @@ const Login: React.FC = () => {
         if (error) {
           setError(error.message);
         } else {
+          // If we have conversation data and user logs in, try to create application
+          if (conversationData && isSupabaseConfigured) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              const { data: client } = await supabase
+                .from('clients')
+                .select('id')
+                .eq('auth_user_id', user.id)
+                .single();
+              
+              if (client) {
+                await createApplicationFromConversation(user.id, client.id, conversationData);
+              }
+            }
+          }
           navigate(from, { replace: true });
         }
       } else {
@@ -53,20 +153,55 @@ const Login: React.FC = () => {
           setLoading(false);
           return;
         }
-        const { error } = await signUp(email, password, fullName, role);
+        
+        // Create the base role (student/workforce/company mapped to allowed values)
+        const baseRole = role === 'company' ? 'workforce' : role;
+        const { error, data } = await signUp(email, password, fullName, baseRole);
+        
         if (error) {
           setError(error.message);
         } else {
-          // Show toast notification for email confirmation
+          // If signup successful and we have conversation data, create the application
+          if (conversationData && isSupabaseConfigured) {
+            // Wait a moment for the user to be created
+            setTimeout(async () => {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                // Update client with additional data from conversation
+                const updateData: Record<string, unknown> = {};
+                if (phone) updateData.phone = phone;
+                if (conversationData.nationality) updateData.nationality = conversationData.nationality;
+                
+                if (Object.keys(updateData).length > 0) {
+                  await supabase
+                    .from('clients')
+                    .update(updateData)
+                    .eq('auth_user_id', user.id);
+                }
+
+                // Get client ID and create application
+                const { data: client } = await supabase
+                  .from('clients')
+                  .select('id')
+                  .eq('auth_user_id', user.id)
+                  .single();
+                
+                if (client) {
+                  await createApplicationFromConversation(user.id, client.id, conversationData);
+                }
+              }
+            }, 1000);
+          }
+          
           setToast({
             message: 'A confirmation email has been sent to your email address. Please check your inbox and click the link to verify your account.',
             type: 'success'
           });
-          // Switch to login view and redirect after delay
           setIsLogin(true);
           setEmail('');
           setPassword('');
           setFullName('');
+          setPhone('');
         }
       }
     } catch (err: any) {
@@ -104,8 +239,21 @@ const Login: React.FC = () => {
       )}
 
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+        {/* Conversation Data Banner */}
+        {conversationData && !isLogin && (
+          <div className="bg-coral/10 border border-coral/20 rounded-lg p-4 mb-6 flex items-start">
+            <MessageSquare className="w-5 h-5 text-coral mr-3 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-navy">Your information has been pre-filled</p>
+              <p className="text-xs text-gray-600 mt-1">
+                Based on your conversation with our AI Consultant. Complete registration to save your application.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="text-center mb-8">
-          <img src="/images/logo.png" alt="Blue OX" className="h-12 mx-auto mb-4" />
+          <img src="/images/logo.png" alt="Blue OX" className="h-12 mx-auto mb-4" onError={(e) => { e.currentTarget.style.display = 'none' }} />
           <h1 className="font-orbitron text-2xl font-bold text-navy">
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h1>
@@ -135,13 +283,25 @@ const Login: React.FC = () => {
                   required
                 />
               </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral focus:border-transparent"
+                  placeholder="+234 XXX XXX XXXX"
+                />
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">I am applying to</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => setRole('student')}
-                    className={`py-3 rounded-lg font-medium transition ${
+                    className={`py-3 rounded-lg font-medium transition text-sm ${
                       role === 'student'
                         ? 'bg-coral text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -152,13 +312,24 @@ const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setRole('workforce')}
-                    className={`py-3 rounded-lg font-medium transition ${
+                    className={`py-3 rounded-lg font-medium transition text-sm ${
                       role === 'workforce'
                         ? 'bg-coral text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     Work
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('company')}
+                    className={`py-3 rounded-lg font-medium transition text-sm ${
+                      role === 'company'
+                        ? 'bg-coral text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Hire
                   </button>
                 </div>
               </div>
@@ -219,6 +390,13 @@ const Login: React.FC = () => {
           >
             {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
           </button>
+        </div>
+        
+        {/* Back to chatbot link */}
+        <div className="mt-4 text-center">
+          <Link to="/" className="text-gray-500 hover:text-coral text-sm">
+            Back to AI Consultant
+          </Link>
         </div>
       </div>
     </div>
