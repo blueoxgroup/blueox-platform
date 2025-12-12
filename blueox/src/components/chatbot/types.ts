@@ -35,14 +35,38 @@ export interface ConversationStep {
   nextStep?: string | ((data: Record<string, unknown>) => string);
 }
 
+export interface FormField {
+  field: string;
+  label: string;
+  type: 'text' | 'email' | 'tel' | 'file';
+  placeholder?: string;
+  required?: boolean;
+  helpText?: string;
+  helpLink?: string;
+}
+
 export interface PathConfig {
-  id: UserPath;
+  id: UserPath | string;
   name: string;
   steps: ConversationStep[];
+  formFields?: FormField[];
+  showJobMatching?: boolean;
+  redirectToWhatsApp?: boolean;
 }
 
 export interface CollectedData {
   [key: string]: unknown;
+}
+
+export interface Job {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  salary?: string;
+  type: string;
+  skills: string[];
+  description: string;
 }
 
 export interface ChatbotState {

@@ -1,37 +1,57 @@
 import { PathConfig, ChatChoice } from './types';
 
+// Emmanuel's Character Profile
+export const CHARACTER = {
+  name: "Emmanuel Okonkwo",
+  role: "Blue Ox Career Consultant",
+  profilePic: "/images/emmanuel-profile.png",
+  greeting: "Hey there! I'm Emmanuel.",
+  status: "Online - Ready to help"
+};
+
 export const INITIAL_CHOICES: ChatChoice[] = [
   {
     id: 'student_university',
-    label: 'I am a Student looking for a school',
+    label: "I'm a student looking for a school",
     value: 'student_university',
-    description: 'Find universities and educational programs in Europe'
-  },
-  {
-    id: 'student_job',
-    label: 'I am a Student looking for a job',
-    value: 'student_job',
-    description: 'Find part-time or internship opportunities while studying'
+    description: 'Find universities and programs in Europe'
   },
   {
     id: 'worker_job',
-    label: 'I am a worker looking for a job',
+    label: "I'm a worker looking for a job",
     value: 'worker_job',
-    description: 'Find full-time employment opportunities in Europe'
+    description: 'Find employment opportunities in Europe'
+  },
+  {
+    id: 'student_job',
+    label: "I'm a student looking for a job",
+    value: 'student_job',
+    description: 'Find work while you study'
   },
   {
     id: 'company',
-    label: 'I am a Company looking for talent',
+    label: "I'm a company looking to hire",
     value: 'company',
-    description: 'Post jobs and find qualified candidates'
+    description: 'Find qualified candidates'
   }
 ];
 
-export const WELCOME_MESSAGE = `Hello! I'm Blue Ox's AI Consultant.
+export const WELCOME_MESSAGE = `Hey there! I'm Emmanuel, your Blue Ox Career Consultant.
 
-I can guide you through securing your first job or finding your next great hire.
+I've helped hundreds of people just like you find amazing opportunities in Europe. Originally from Nigeria myself, I know exactly what you're going through.
 
-What are you here for today?`;
+So tell me - what brings you here today?`;
+
+export const WHATSAPP_LINK = "https://wa.me/message/F6QOLB6IS3VHF1";
+
+// Company flow - redirect to WhatsApp
+export const COMPANY_REDIRECT_MESSAGE = `That's great to hear! We love working with companies who want to tap into amazing African talent.
+
+For the best experience, let's chat directly. Our team can walk you through everything and answer all your questions.
+
+Reach out to us here: ${WHATSAPP_LINK}
+
+Looking forward to hearing from you!`;
 
 export const PATH_CONFIGS: Record<string, PathConfig> = {
   student_university: {
@@ -40,345 +60,180 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
     steps: [
       {
         id: 'education_level',
-        question: 'Great choice! What is your current education level?',
+        question: "Awesome, you're looking to study in Europe! That's exciting.\n\nLet me ask you a few quick questions so I can point you in the right direction.\n\nFirst up - what's your current education level?",
         inputType: 'select',
         field: 'educationLevel',
-        inputOptions: ['High School', 'Bachelor\'s Degree', 'Master\'s Degree', 'PhD', 'Other']
+        inputOptions: ["Bachelor's Degree", "Master's Degree"]
       },
       {
         id: 'target_countries',
-        question: 'Which European countries are you interested in studying in?',
+        question: "Perfect! Now, which European countries are you interested in?\n\nPick as many as you like - keeping your options open is always smart!",
         inputType: 'multiselect',
         field: 'targetCountries',
         inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'France', 'Spain', 'Italy', 'Other']
       },
       {
         id: 'field_of_study',
-        question: 'What field of study are you interested in?',
-        inputType: 'select',
+        question: "What fields are you interested in studying?\n\nYou can choose multiple - I know it's hard to pick just one!",
+        inputType: 'multiselect',
         field: 'fieldOfStudy',
         inputOptions: ['Engineering', 'Business & Economics', 'Computer Science', 'Medicine & Health', 'Arts & Humanities', 'Natural Sciences', 'Law', 'Other']
       },
       {
         id: 'budget',
-        question: 'What is your approximate annual budget for tuition and living expenses (in EUR)?',
+        question: "Let's talk money - what's your approximate annual budget for tuition and living expenses?\n\nBe honest, it helps me find the right fit for you.",
         inputType: 'select',
         field: 'budget',
-        inputOptions: ['Under 5,000', '5,000 - 10,000', '10,000 - 15,000', '15,000 - 20,000', 'Over 20,000']
+        inputOptions: ['Under 5,000 EUR', '5,000 - 10,000 EUR', '10,000 - 15,000 EUR', '15,000 - 20,000 EUR', 'Over 20,000 EUR']
       },
       {
         id: 'start_date',
-        question: 'When would you like to start your studies?',
+        question: "When are you hoping to start your studies?",
         inputType: 'select',
         field: 'startDate',
         inputOptions: ['Spring 2025', 'Fall 2025', 'Spring 2026', 'Fall 2026', 'Not sure yet']
-      },
-      {
-        id: 'full_name',
-        question: 'Perfect! Now let me get some personal details. What is your full name?',
-        inputType: 'text',
-        field: 'fullName',
-        placeholder: 'Enter your full name'
-      },
-      {
-        id: 'email',
-        question: 'What is your email address?',
-        inputType: 'text',
-        field: 'email',
-        placeholder: 'Enter your email address'
-      },
-      {
-        id: 'phone',
-        question: 'What is your phone number (with country code)?',
-        inputType: 'text',
-        field: 'phone',
-        placeholder: '+234 XXX XXX XXXX'
-      },
-      {
-        id: 'nationality',
-        question: 'What is your nationality?',
-        inputType: 'text',
-        field: 'nationality',
-        placeholder: 'Enter your nationality'
       }
+    ],
+    formFields: [
+      { field: 'fullName', label: 'Full Name', type: 'text', placeholder: 'Your full name', required: true },
+      { field: 'email', label: 'Email Address', type: 'email', placeholder: 'your.email@example.com', required: true },
+      { field: 'whatsapp', label: 'WhatsApp Number', type: 'tel', placeholder: '+234 XXX XXX XXXX', required: true },
+      { field: 'nationality', label: 'Nationality', type: 'text', placeholder: 'Your nationality', required: true },
+      { field: 'cv', label: 'Europass CV', type: 'file', required: true, helpText: 'Create one at europass.europa.eu/en/create-europass-cv', helpLink: 'https://europass.europa.eu/en/create-europass-cv' },
+      { field: 'passport', label: 'Passport (clearly scanned)', type: 'file', required: true }
     ]
   },
-  student_job: {
-    id: 'student_job',
-    name: 'Student Job Path',
-    steps: [
-      {
-        id: 'university',
-        question: 'Great! Which university are you currently studying at?',
-        inputType: 'text',
-        field: 'university',
-        placeholder: 'Enter your university name'
-      },
-      {
-        id: 'course',
-        question: 'What course or program are you studying?',
-        inputType: 'text',
-        field: 'course',
-        placeholder: 'e.g., Computer Science, Business Administration'
-      },
-      {
-        id: 'year',
-        question: 'What year of study are you in?',
-        inputType: 'select',
-        field: 'yearOfStudy',
-        inputOptions: ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Graduate Student']
-      },
-      {
-        id: 'work_experience',
-        question: 'Do you have any prior work experience?',
-        inputType: 'select',
-        field: 'workExperience',
-        inputOptions: ['No experience', 'Less than 1 year', '1-2 years', '2-3 years', 'More than 3 years']
-      },
-      {
-        id: 'availability',
-        question: 'What is your availability for work?',
-        inputType: 'select',
-        field: 'availability',
-        inputOptions: ['Part-time (10-20 hrs/week)', 'Part-time (20-30 hrs/week)', 'Full-time during holidays', 'Internship only', 'Flexible']
-      },
-      {
-        id: 'job_type',
-        question: 'What type of job are you looking for?',
-        inputType: 'multiselect',
-        field: 'jobType',
-        inputOptions: ['Internship', 'Part-time', 'Working Student', 'Seasonal', 'Remote']
-      },
-      {
-        id: 'full_name',
-        question: 'Now for your contact details. What is your full name?',
-        inputType: 'text',
-        field: 'fullName',
-        placeholder: 'Enter your full name'
-      },
-      {
-        id: 'email',
-        question: 'What is your email address?',
-        inputType: 'text',
-        field: 'email',
-        placeholder: 'Enter your email address'
-      },
-      {
-        id: 'phone',
-        question: 'What is your phone number?',
-        inputType: 'text',
-        field: 'phone',
-        placeholder: '+234 XXX XXX XXXX'
-      }
-    ]
-  },
+  
   worker_job: {
     id: 'worker_job',
     name: 'Worker Job Path',
     steps: [
       {
-        id: 'current_job',
-        question: 'What is your current job or most recent role?',
-        inputType: 'text',
-        field: 'currentJob',
-        placeholder: 'e.g., Electrician, Nurse, Chef'
-      },
-      {
-        id: 'experience_years',
-        question: 'How many years of experience do you have in your field?',
-        inputType: 'select',
-        field: 'experienceYears',
-        inputOptions: ['Less than 1 year', '1-2 years', '3-5 years', '5-10 years', 'More than 10 years']
-      },
-      {
-        id: 'skills',
-        question: 'What are your main skills? (Select all that apply)',
-        inputType: 'multiselect',
-        field: 'skills',
-        inputOptions: ['Technical/Trade Skills', 'Language Skills', 'Management', 'Customer Service', 'Healthcare', 'IT/Technology', 'Driving', 'Construction', 'Manufacturing', 'Other']
-      },
-      {
         id: 'target_countries',
-        question: 'Which European countries would you prefer to work in?',
+        question: "Looking for work in Europe? You've come to the right place!\n\nWhich countries are you interested in working in?",
         inputType: 'multiselect',
         field: 'targetCountries',
         inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'Belgium', 'Sweden', 'Norway', 'Any']
       },
       {
-        id: 'salary_expectation',
-        question: 'What is your expected monthly salary (in EUR)?',
-        inputType: 'select',
-        field: 'salaryExpectation',
-        inputOptions: ['1,000 - 1,500', '1,500 - 2,000', '2,000 - 2,500', '2,500 - 3,000', 'Over 3,000', 'Negotiable']
+        id: 'skills',
+        question: "Tell me about your skills - what are you good at?\n\nSelect all that apply.",
+        inputType: 'multiselect',
+        field: 'skills',
+        inputOptions: ['Technical/Trade Skills', 'Language Skills', 'Management', 'Customer Service', 'Healthcare', 'IT/Technology', 'Driving', 'Construction', 'Manufacturing', 'Hospitality', 'Agriculture', 'Other']
       },
       {
-        id: 'certifications',
-        question: 'Do you have any certifications or licenses?',
-        inputType: 'text',
-        field: 'certifications',
-        placeholder: 'e.g., Driving license, Trade certificate, Language certificate'
+        id: 'experience_years',
+        question: "How many years of experience do you have?",
+        inputType: 'select',
+        field: 'experienceYears',
+        inputOptions: ['Less than 1 year', '1-2 years', '3-5 years', '5-10 years', 'More than 10 years']
+      },
+      {
+        id: 'salary_expectation',
+        question: "What monthly salary are you looking for? (in EUR)\n\nDon't undersell yourself!",
+        inputType: 'select',
+        field: 'salaryExpectation',
+        inputOptions: ['1,000 - 1,500 EUR', '1,500 - 2,000 EUR', '2,000 - 2,500 EUR', '2,500 - 3,000 EUR', 'Over 3,000 EUR', 'Negotiable']
       },
       {
         id: 'availability',
-        question: 'When can you start a new position?',
+        question: "When can you start a new position?",
         inputType: 'select',
         field: 'availability',
         inputOptions: ['Immediately', 'Within 1 month', 'Within 3 months', 'Within 6 months', 'Flexible']
-      },
-      {
-        id: 'full_name',
-        question: 'Now let me get your contact information. What is your full name?',
-        inputType: 'text',
-        field: 'fullName',
-        placeholder: 'Enter your full name'
-      },
-      {
-        id: 'email',
-        question: 'What is your email address?',
-        inputType: 'text',
-        field: 'email',
-        placeholder: 'Enter your email address'
-      },
-      {
-        id: 'phone',
-        question: 'What is your phone number?',
-        inputType: 'text',
-        field: 'phone',
-        placeholder: '+234 XXX XXX XXXX'
-      },
-      {
-        id: 'nationality',
-        question: 'What is your nationality?',
-        inputType: 'text',
-        field: 'nationality',
-        placeholder: 'Enter your nationality'
       }
+    ],
+    showJobMatching: true,
+    formFields: [
+      { field: 'fullName', label: 'Full Name', type: 'text', placeholder: 'Your full name', required: true },
+      { field: 'email', label: 'Email Address', type: 'email', placeholder: 'your.email@example.com', required: true },
+      { field: 'whatsapp', label: 'WhatsApp Number', type: 'tel', placeholder: '+234 XXX XXX XXXX', required: true },
+      { field: 'cv', label: 'Europass CV', type: 'file', required: true, helpText: 'Create one at europass.europa.eu/en/create-europass-cv', helpLink: 'https://europass.europa.eu/en/create-europass-cv' },
+      { field: 'passport', label: 'Passport (clearly scanned)', type: 'file', required: true },
+      { field: 'policeReport', label: 'Police Letter from Interpol', type: 'file', required: true }
     ]
   },
+  
+  student_job: {
+    id: 'student_job',
+    name: 'Student Job Path',
+    steps: [
+      {
+        id: 'education_level',
+        question: "Nice! A student looking for work - I love the hustle!\n\nWhat's your current education level?",
+        inputType: 'select',
+        field: 'educationLevel',
+        inputOptions: ["Bachelor's Degree", "Master's Degree"]
+      },
+      {
+        id: 'target_countries',
+        question: "Which European country are you interested in?",
+        inputType: 'multiselect',
+        field: 'targetCountries',
+        inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'France', 'Spain', 'Italy', 'Other']
+      },
+      {
+        id: 'start_date',
+        question: "When would you like to start working?",
+        inputType: 'select',
+        field: 'startDate',
+        inputOptions: ['Immediately', 'Within 1 month', 'Within 3 months', 'Within 6 months', 'Flexible']
+      }
+    ],
+    showJobMatching: true,
+    formFields: [
+      { field: 'fullName', label: 'Full Name', type: 'text', placeholder: 'Your full name', required: true },
+      { field: 'email', label: 'Email Address', type: 'email', placeholder: 'your.email@example.com', required: true },
+      { field: 'whatsapp', label: 'WhatsApp Number', type: 'tel', placeholder: '+234 XXX XXX XXXX', required: true },
+      { field: 'nationality', label: 'Nationality', type: 'text', placeholder: 'Your nationality', required: true },
+      { field: 'cv', label: 'Europass CV', type: 'file', required: true, helpText: 'Create one at europass.europa.eu/en/create-europass-cv', helpLink: 'https://europass.europa.eu/en/create-europass-cv' },
+      { field: 'passport', label: 'Passport (clearly scanned)', type: 'file', required: true }
+    ]
+  },
+  
   company: {
     id: 'company',
     name: 'Company Path',
-    steps: [
-      {
-        id: 'company_name',
-        question: 'Welcome! What is your company name?',
-        inputType: 'text',
-        field: 'companyName',
-        placeholder: 'Enter your company name'
-      },
-      {
-        id: 'industry',
-        question: 'What industry does your company operate in?',
-        inputType: 'select',
-        field: 'industry',
-        inputOptions: ['Manufacturing', 'Healthcare', 'Technology', 'Construction', 'Hospitality', 'Agriculture', 'Logistics', 'Retail', 'Other']
-      },
-      {
-        id: 'company_size',
-        question: 'How many employees does your company have?',
-        inputType: 'select',
-        field: 'companySize',
-        inputOptions: ['1-10', '11-50', '51-200', '201-500', '500+']
-      },
-      {
-        id: 'positions_needed',
-        question: 'What types of positions are you looking to fill?',
-        inputType: 'multiselect',
-        field: 'positionsNeeded',
-        inputOptions: ['Skilled Workers', 'Unskilled Workers', 'Technicians', 'Engineers', 'Administrative', 'Management', 'Seasonal Workers', 'Interns']
-      },
-      {
-        id: 'number_of_hires',
-        question: 'How many candidates are you looking to hire?',
-        inputType: 'select',
-        field: 'numberOfHires',
-        inputOptions: ['1-5', '6-10', '11-20', '21-50', '50+']
-      },
-      {
-        id: 'timeline',
-        question: 'What is your hiring timeline?',
-        inputType: 'select',
-        field: 'timeline',
-        inputOptions: ['Urgent (Within 1 month)', 'Short-term (1-3 months)', 'Medium-term (3-6 months)', 'Long-term (6+ months)', 'Ongoing recruitment']
-      },
-      {
-        id: 'budget_range',
-        question: 'What is your budget per hire (recruitment fee)?',
-        inputType: 'select',
-        field: 'budgetRange',
-        inputOptions: ['Under 500 EUR', '500-1000 EUR', '1000-2000 EUR', '2000-5000 EUR', 'Negotiable']
-      },
-      {
-        id: 'contact_name',
-        question: 'Who should we contact regarding this opportunity? Full name:',
-        inputType: 'text',
-        field: 'contactName',
-        placeholder: 'Enter contact person name'
-      },
-      {
-        id: 'contact_email',
-        question: 'What is the best email to reach you?',
-        inputType: 'text',
-        field: 'contactEmail',
-        placeholder: 'Enter email address'
-      },
-      {
-        id: 'contact_phone',
-        question: 'What is your phone number?',
-        inputType: 'text',
-        field: 'contactPhone',
-        placeholder: '+XX XXX XXX XXXX'
-      }
-    ]
+    steps: [],
+    redirectToWhatsApp: true
   }
 };
 
-export const getCompletionMessage = (path: string, data: Record<string, unknown>): string => {
-  const name = (data.fullName || data.contactName || 'there') as string;
-  
+export const getPreFormMessage = (path: string, jobSelected?: string): string => {
   const messages: Record<string, string> = {
-    student_university: `Thank you, ${name}! I've collected all the information needed to help you find the perfect university in Europe.
+    student_university: `This is looking great! I've got a good picture of what you're looking for.
 
-Our team will review your preferences and reach out within 24-48 hours with personalized university recommendations.
-
-In the meantime, you can create an account to:
-- Save your progress
-- Upload your documents
-- Track your application status
-
-Would you like to create an account now?`,
+Now I just need a few details from you so our team can start finding the perfect schools. Fill out this quick form and we'll take it from there!`,
     
-    student_job: `Excellent, ${name}! I have everything I need to start matching you with student job opportunities.
+    worker_job: jobSelected 
+      ? `Excellent choice! "${jobSelected}" looks like a great fit for you.
 
-Our team will reach out within 24-48 hours with job listings that match your profile and availability.
+Let me get your details so we can move forward with your application.`
+      : `Based on what you've told me, I think we can find you something great.
 
-Create an account to:
-- Build your Europass CV
-- Upload supporting documents
-- Apply directly to positions
-
-Ready to set up your account?`,
+Fill out this form and upload your documents - then we'll get the ball rolling!`,
     
-    worker_job: `Thank you, ${name}! Your profile is now ready for our recruitment team to review.
+    student_job: jobSelected
+      ? `Nice pick! "${jobSelected}" could be perfect for you.
 
-We'll match you with employers looking for your skills and experience, and contact you within 24-48 hours.
+Just need your details and documents to get your application started.`
+      : `I've got some good options in mind for you!
 
-To increase your chances:
-- Create an account
-- Build a professional CV
-- Upload certifications and references
-
-Shall we set up your account?`,
-    
-    company: `Thank you for your interest in Blue Ox's recruitment services!
-
-We'll have a recruitment specialist contact you within 24 hours to discuss your hiring needs and how we can help you find the best talent from our candidate pool.
-
-In the meantime, would you like to create a company account to:
-- Post job listings
-- Browse candidate profiles
-- Manage your recruitment pipeline`
+Let's get your details down so we can connect you with the right opportunities.`
   };
   
-  return messages[path] || `Thank you! We'll be in touch soon.`;
+  return messages[path] || "Let's get your details!";
+};
+
+export const getCompletionMessage = (path: string, data: Record<string, unknown>): string => {
+  const name = ((data.fullName || 'there') as string).split(' ')[0];
+  
+  return `You're all set, ${name}!
+
+Your application has been submitted and our team is already on it. We'll reach out to you on WhatsApp within 24-48 hours.
+
+In the meantime, keep an eye on your messages. If you have any questions, don't hesitate to reach out!
+
+Follow up your progress on WhatsApp: ${WHATSAPP_LINK}`;
 };

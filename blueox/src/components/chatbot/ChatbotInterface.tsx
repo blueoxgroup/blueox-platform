@@ -1,18 +1,37 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Send, ArrowRight, Check, User, Bot, RotateCcw, LogIn } from 'lucide-react';
-import { UserPath, ConversationMessage, ChatChoice, CollectedData } from './types';
-import { WELCOME_MESSAGE, INITIAL_CHOICES, PATH_CONFIGS, getCompletionMessage } from './conversationFlow';
+import { Link } from 'react-router-dom';
+import { Send, ArrowRight, Check, RotateCcw, ExternalLink, Upload, X, Menu, Briefcase } from 'lucide-react';
+import { UserPath, ConversationMessage, ChatChoice, CollectedData, Job } from './types';
+import { 
+  WELCOME_MESSAGE, 
+  INITIAL_CHOICES, 
+  PATH_CONFIGS, 
+  CHARACTER,
+  WHATSAPP_LINK,
+  COMPANY_REDIRECT_MESSAGE,
+  getPreFormMessage,
+  getCompletionMessage 
+} from './conversationFlow';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
+// Sample jobs for matching
+const SAMPLE_JOBS: Job[] = [
+  { id: '1', title: 'Warehouse Worker', company: 'LogiPack GmbH', location: 'Germany', salary: '1,800 - 2,200 EUR/month', type: 'Full-time', skills: ['Manufacturing', 'Driving'], description: 'Sorting and packing in modern warehouse facility' },
+  { id: '2', title: 'Care Assistant', company: 'SeniorCare Netherlands', location: 'Netherlands', salary: '2,000 - 2,500 EUR/month', type: 'Full-time', skills: ['Healthcare', 'Customer Service'], description: 'Elderly care in residential homes' },
+  { id: '3', title: 'Construction Helper', company: 'BuildRight Poland', location: 'Poland', salary: '1,500 - 1,900 EUR/month', type: 'Full-time', skills: ['Construction', 'Technical/Trade Skills'], description: 'General construction assistance' },
+  { id: '4', title: 'Kitchen Staff', company: 'EuroHotel Group', location: 'Austria', salary: '1,600 - 2,000 EUR/month', type: 'Full-time', skills: ['Hospitality', 'Customer Service'], description: 'Food preparation and kitchen duties' },
+  { id: '5', title: 'Farm Worker', company: 'GreenFields Agriculture', location: 'Netherlands', salary: '1,700 - 2,100 EUR/month', type: 'Seasonal', skills: ['Agriculture'], description: 'Seasonal agricultural work' },
+  { id: '6', title: 'IT Support Technician', company: 'TechServe Czech', location: 'Czech Republic', salary: '2,200 - 2,800 EUR/month', type: 'Full-time', skills: ['IT/Technology', 'Customer Service'], description: 'Technical support and troubleshooting' },
+  { id: '7', title: 'Delivery Driver', company: 'FastLogistics', location: 'Germany', salary: '2,000 - 2,400 EUR/month', type: 'Full-time', skills: ['Driving'], description: 'Package delivery in urban areas' },
+  { id: '8', title: 'Hotel Receptionist', company: 'Grand Hotel Vienna', location: 'Austria', salary: '1,900 - 2,300 EUR/month', type: 'Full-time', skills: ['Hospitality', 'Language Skills', 'Customer Service'], description: 'Front desk operations' },
+];
+
 const ChatbotInterface: React.FC = () => {
-  const navigate = useNavigate();
-  const { user, client } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -22,7 +41,13 @@ const ChatbotInterface: React.FC = () => {
   const [isComplete, setIsComplete] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  const [showAccountPrompt, setShowAccountPrompt] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [uploadedFiles, setUploadedFiles] = useState<Record<string, File>>({});
+  const [matchedJobs, setMatchedJobs] = useState<Job[]>([]);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [showJobSelection, setShowJobSelection] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Reset conversation
   const resetConversation = () => {
@@ -33,7 +58,12 @@ const ChatbotInterface: React.FC = () => {
     setIsComplete(false);
     setInputValue('');
     setSelectedOptions([]);
-    setShowAccountPrompt(false);
+    setShowForm(false);
+    setFormData({});
+    setUploadedFiles({});
+    setMatchedJobs([]);
+    setSelectedJob(null);
+    setShowJobSelection(false);
     localStorage.removeItem('blueox_conversation_data');
     setTimeout(() => {
       addBotMessage(WELCOME_MESSAGE, INITIAL_CHOICES);
@@ -47,7 +77,7 @@ const ChatbotInterface: React.FC = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [messages, scrollToBottom, showForm, showJobSelection]);
 
   // Initialize welcome message
   useEffect(() => {
@@ -73,7 +103,7 @@ const ChatbotInterface: React.FC = () => {
       }]);
       setIsTyping(false);
       inputRef.current?.focus();
-    }, 800 + Math.random() * 400);
+    }, 600 + Math.random() * 300);
   };
 
   const addUserMessage = (content: string) => {
@@ -85,14 +115,34 @@ const ChatbotInterface: React.FC = () => {
     }]);
   };
 
+  const matchJobs = (data: CollectedData): Job[] => {
+    const userSkills = (data.skills as string[]) || [];
+    const userCountries = (data.targetCountries as string[]) || [];
+    
+    return SAMPLE_JOBS.filter(job => {
+      const skillMatch = userSkills.length === 0 || userSkills.some(skill => job.skills.includes(skill)) || userSkills.includes('Other');
+      const countryMatch = userCountries.length === 0 || userCountries.includes(job.location) || userCountries.includes('Any') || userCountries.includes('Other');
+      return skillMatch && countryMatch;
+    }).slice(0, 5);
+  };
+
   const handlePathSelect = (choice: ChatChoice) => {
     addUserMessage(choice.label);
     const path = choice.value as UserPath;
+    
+    // Company path - redirect to WhatsApp
+    if (path === 'company') {
+      setTimeout(() => {
+        addBotMessage(COMPANY_REDIRECT_MESSAGE);
+        setIsComplete(true);
+      }, 100);
+      return;
+    }
+    
     setUserPath(path);
     setCollectedData({ userPath: path });
     setCurrentStepIndex(0);
     
-    // Get first step of the selected path
     const config = PATH_CONFIGS[path];
     if (config && config.steps.length > 0) {
       const step = config.steps[0];
@@ -115,26 +165,37 @@ const ChatbotInterface: React.FC = () => {
     const config = PATH_CONFIGS[userPath];
     const currentStep = config.steps[currentStepIndex];
     
-    // Store the collected data
     const displayValue = Array.isArray(value) ? value.join(', ') : value;
     addUserMessage(displayValue);
     
     const newData = { ...collectedData, [currentStep.field]: value };
     setCollectedData(newData);
     
-    // Move to next step
     const nextIndex = currentStepIndex + 1;
     
     if (nextIndex >= config.steps.length) {
-      // Conversation complete
-      setIsComplete(true);
-      setTimeout(() => {
-        addBotMessage(getCompletionMessage(userPath, newData));
-        setShowAccountPrompt(true);
-        saveConversationData(newData);
-      }, 100);
+      // Check if we need job matching
+      if (config.showJobMatching) {
+        const jobs = matchJobs(newData);
+        setMatchedJobs(jobs);
+        setTimeout(() => {
+          if (jobs.length > 0) {
+            addBotMessage("Great news! I found some jobs that match what you're looking for. Take a look and pick the one that catches your eye:");
+            setShowJobSelection(true);
+          } else {
+            addBotMessage("I don't have exact matches right now, but don't worry - fill out your details and our team will find something perfect for you!");
+            setShowForm(true);
+          }
+        }, 100);
+      } else {
+        // Show form directly
+        setTimeout(() => {
+          addBotMessage(getPreFormMessage(userPath));
+          setShowForm(true);
+        }, 100);
+      }
+      saveConversationData(newData);
     } else {
-      // Continue to next question
       setCurrentStepIndex(nextIndex);
       const nextStep = config.steps[nextIndex];
       setTimeout(() => {
@@ -153,15 +214,72 @@ const ChatbotInterface: React.FC = () => {
     setSelectedOptions([]);
   };
 
+  const handleJobSelect = (job: Job) => {
+    setSelectedJob(job);
+    addUserMessage(`Selected: ${job.title} at ${job.company}`);
+    setShowJobSelection(false);
+    setTimeout(() => {
+      addBotMessage(getPreFormMessage(userPath!, job.title));
+      setShowForm(true);
+    }, 100);
+  };
+
   const saveConversationData = async (data: CollectedData) => {
     try {
-      // Save to localStorage for now (will be synced when user creates account)
       localStorage.setItem('blueox_conversation_data', JSON.stringify({
         ...data,
         savedAt: new Date().toISOString()
       }));
     } catch (error) {
       console.error('Error saving conversation data:', error);
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userPath) return;
+    
+    const config = PATH_CONFIGS[userPath];
+    const allData = {
+      ...collectedData,
+      ...formData,
+      selectedJob: selectedJob?.id,
+      uploadedDocuments: Object.keys(uploadedFiles)
+    };
+
+    // Save to Supabase if configured
+    if (isSupabaseConfigured) {
+      try {
+        // Upload files first
+        for (const [fieldName, file] of Object.entries(uploadedFiles)) {
+          const fileName = `${Date.now()}-${file.name}`;
+          const { error } = await supabase.storage
+            .from('documents')
+            .upload(`applications/${fileName}`, file);
+          if (error) console.error('Upload error:', error);
+        }
+
+        // Save application
+        await supabase.from('applications').insert({
+          user_path: userPath,
+          data: allData,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error('Error saving to Supabase:', err);
+      }
+    }
+
+    setShowForm(false);
+    setIsComplete(true);
+    addBotMessage(getCompletionMessage(userPath, allData));
+  };
+
+  const handleFileChange = (field: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFiles(prev => ({ ...prev, [field]: file }));
     }
   };
 
@@ -190,16 +308,6 @@ const ChatbotInterface: React.FC = () => {
     }
   };
 
-  const handleCreateAccount = () => {
-    // Navigate to login/signup with conversation data
-    navigate('/login', { 
-      state: { 
-        from: { pathname: '/apply/' + (userPath?.includes('student') ? 'student' : 'workforce') },
-        conversationData: collectedData 
-      }
-    });
-  };
-
   const currentMessage = messages[messages.length - 1];
   const showTextInput = currentMessage?.inputType === 'text' || currentMessage?.inputType === 'number';
   const showSelectInput = currentMessage?.inputType === 'select';
@@ -207,156 +315,369 @@ const ChatbotInterface: React.FC = () => {
   const showInitialChoices = currentMessage?.choices && !userPath;
 
   // Calculate progress
-  const totalSteps = userPath ? PATH_CONFIGS[userPath]?.steps.length || 0 : 0;
-  const progress = totalSteps > 0 ? ((currentStepIndex + 1) / totalSteps) * 100 : 0;
+  const config = userPath ? PATH_CONFIGS[userPath] : null;
+  const totalSteps = config?.steps.length || 0;
+  const formSteps = config?.formFields?.length ? 1 : 0;
+  const jobStep = config?.showJobMatching ? 1 : 0;
+  const totalProgress = totalSteps + formSteps + jobStep;
+  
+  let currentProgress = currentStepIndex + 1;
+  if (showJobSelection) currentProgress = totalSteps + 1;
+  if (showForm) currentProgress = totalSteps + jobStep + 1;
+  if (isComplete) currentProgress = totalProgress;
+  
+  const progress = totalProgress > 0 ? (currentProgress / totalProgress) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-navy via-navy-dark to-navy flex flex-col">
-      {/* Header */}
-      <div className="bg-navy-dark/50 backdrop-blur-sm border-b border-white/10 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-coral rounded-full flex items-center justify-center">
-            <Bot className="w-6 h-6 text-white" />
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-navy-dark/95 backdrop-blur-sm border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-coral rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">BO</span>
+              </div>
+              <span className="font-orbitron text-lg font-bold text-white hidden sm:block">Blue Ox</span>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-6">
+              <a 
+                href={WHATSAPP_LINK} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-coral font-space text-sm transition-colors"
+              >
+                Talk to customers
+              </a>
+              <a 
+                href={WHATSAPP_LINK} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-coral font-space text-sm transition-colors"
+              >
+                Contact us
+              </a>
+              <Link 
+                to="/jobs"
+                className="text-gray-300 hover:text-coral font-space text-sm transition-colors flex items-center"
+              >
+                <Briefcase className="w-4 h-4 mr-1" />
+                Jobs Open
+              </Link>
+              <a 
+                href={WHATSAPP_LINK} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-coral hover:bg-coral-dark text-white font-space text-sm px-4 py-2 rounded-lg transition-colors"
+              >
+                Sign in
+              </a>
+            </nav>
+
+            {/* Mobile menu button */}
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden text-white p-2"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
           </div>
-          <div>
-            <h1 className="font-orbitron text-lg font-bold text-white">Blue Ox AI Consultant</h1>
-            <p className="text-xs text-gray-400 font-space">Online - Here to help</p>
-          </div>
+
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden py-4 border-t border-white/10">
+              <div className="flex flex-col space-y-3">
+                <a 
+                  href={WHATSAPP_LINK} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-coral font-space text-sm"
+                >
+                  Talk to customers
+                </a>
+                <a 
+                  href={WHATSAPP_LINK} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-coral font-space text-sm"
+                >
+                  Contact us
+                </a>
+                <Link 
+                  to="/jobs"
+                  className="text-gray-300 hover:text-coral font-space text-sm"
+                >
+                  Jobs Open
+                </Link>
+                <a 
+                  href={WHATSAPP_LINK} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-coral font-space text-sm"
+                >
+                  Sign in
+                </a>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="flex items-center space-x-4">
-          {userPath && !isComplete && (
-            <div className="hidden md:flex items-center space-x-3">
-              <span className="text-xs text-gray-400 font-space">Progress</span>
-              <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
+      </header>
+
+      {/* Progress Bar - Fixed below header */}
+      {userPath && !isComplete && (
+        <div className="fixed top-16 left-0 right-0 z-40 bg-navy-dark/90 backdrop-blur-sm px-4 py-3 border-b border-white/10">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center space-x-3">
+              <span className="text-xs text-gray-400 font-space whitespace-nowrap">Progress</span>
+              <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-coral transition-all duration-500 rounded-full"
-                  style={{ width: `${progress}%` }}
+                  style={{ width: `${Math.min(progress, 100)}%` }}
                 />
               </div>
-              <span className="text-xs text-coral font-space">{Math.round(progress)}%</span>
+              <span className="text-xs text-coral font-space whitespace-nowrap">{Math.round(Math.min(progress, 100))}%</span>
             </div>
-          )}
-          {(userPath || isComplete) && (
-            <button
-              onClick={resetConversation}
-              className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
-              title="Start Over"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </button>
-          )}
-          {!user && (
-            <Link
-              to="/login"
-              className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors flex items-center space-x-1"
-              title="Sign In"
-            >
-              <LogIn className="w-5 h-5" />
-              <span className="hidden md:inline text-sm font-space">Sign In</span>
-            </Link>
-          )}
-          {user && client && (
-            <Link
-              to={`/apply/${client.role === 'student' ? 'student' : 'workforce'}`}
-              className="text-coral hover:text-coral-light font-space text-sm font-medium"
-            >
-              Go to Portal
-            </Link>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-        <div className="max-w-3xl mx-auto space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`flex items-start space-x-3 max-w-[85%] ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  message.role === 'user' ? 'bg-coral/20' : 'bg-white/10'
-                }`}>
-                  {message.role === 'user' ? (
-                    <User className="w-4 h-4 text-coral" />
+      {/* Chat Area with Emmanuel */}
+      <div className={`flex-1 overflow-y-auto px-4 py-6 ${userPath && !isComplete ? 'pt-32' : 'pt-24'}`}>
+        <div className="max-w-3xl mx-auto">
+          {/* Emmanuel's Profile Card */}
+          {messages.length <= 1 && (
+            <div className="flex items-center space-x-4 mb-6 p-4 bg-white/5 rounded-xl border border-white/10">
+              <img 
+                src={CHARACTER.profilePic} 
+                alt={CHARACTER.name}
+                className="w-16 h-16 rounded-full object-cover border-2 border-coral"
+              />
+              <div>
+                <h2 className="font-orbitron text-lg font-bold text-white">{CHARACTER.name}</h2>
+                <p className="text-coral font-space text-sm">{CHARACTER.role}</p>
+                <p className="text-gray-400 font-space text-xs mt-1">{CHARACTER.status}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Messages */}
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`flex items-start space-x-3 max-w-[85%] ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                  {message.role === 'assistant' ? (
+                    <img 
+                      src={CHARACTER.profilePic}
+                      alt={CHARACTER.name}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-coral/50"
+                    />
                   ) : (
-                    <Bot className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 rounded-full bg-coral/20 flex items-center justify-center flex-shrink-0">
+                      <span className="text-coral text-xs font-bold">You</span>
+                    </div>
                   )}
-                </div>
-                <div className={`rounded-2xl px-4 py-3 ${
-                  message.role === 'user' 
-                    ? 'bg-coral text-white' 
-                    : 'bg-white/10 text-white'
-                }`}>
-                  <p className="font-space text-sm whitespace-pre-line">{message.content}</p>
+                  <div className={`rounded-2xl px-4 py-3 ${
+                    message.role === 'user' 
+                      ? 'bg-coral text-white' 
+                      : 'bg-white/10 text-white'
+                  }`}>
+                    <p className="font-space text-sm whitespace-pre-line">{message.content}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {/* Initial Path Selection */}
-          {showInitialChoices && currentMessage?.choices && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-              {currentMessage.choices.map((choice) => (
+            {/* Initial Path Selection */}
+            {showInitialChoices && currentMessage?.choices && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                {currentMessage.choices.map((choice) => (
+                  <button
+                    key={choice.id}
+                    onClick={() => handlePathSelect(choice)}
+                    className="bg-white/5 hover:bg-white/10 border border-white/20 hover:border-coral rounded-xl p-4 text-left transition-all group"
+                  >
+                    <p className="font-space font-medium text-white group-hover:text-coral transition-colors">
+                      {choice.label}
+                    </p>
+                    {choice.description && (
+                      <p className="text-xs text-gray-400 mt-1">{choice.description}</p>
+                    )}
+                    <ArrowRight className="w-4 h-4 text-coral mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Job Selection */}
+            {showJobSelection && matchedJobs.length > 0 && (
+              <div className="space-y-3 mt-4">
+                {matchedJobs.map((job) => (
+                  <button
+                    key={job.id}
+                    onClick={() => handleJobSelect(job)}
+                    className="w-full bg-white/5 hover:bg-white/10 border border-white/20 hover:border-coral rounded-xl p-4 text-left transition-all group"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-space font-semibold text-white group-hover:text-coral transition-colors">
+                          {job.title}
+                        </h3>
+                        <p className="text-sm text-gray-400">{job.company} - {job.location}</p>
+                        <p className="text-xs text-gray-500 mt-1">{job.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-coral font-space text-sm">{job.salary}</span>
+                        <p className="text-xs text-gray-500">{job.type}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
                 <button
-                  key={choice.id}
-                  onClick={() => handlePathSelect(choice)}
-                  className="bg-white/5 hover:bg-white/10 border border-white/20 hover:border-coral rounded-xl p-4 text-left transition-all group"
+                  onClick={() => {
+                    setShowJobSelection(false);
+                    addBotMessage("No worries! Let's get your details anyway - we might have something perfect coming up soon.");
+                    setShowForm(true);
+                  }}
+                  className="text-gray-400 hover:text-white font-space text-sm underline"
                 >
-                  <p className="font-space font-medium text-white group-hover:text-coral transition-colors">
-                    {choice.label}
-                  </p>
-                  {choice.description && (
-                    <p className="text-xs text-gray-400 mt-1">{choice.description}</p>
-                  )}
-                  <ArrowRight className="w-4 h-4 text-coral mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  None of these fit - show me the form anyway
                 </button>
-              ))}
-            </div>
-          )}
-
-          {/* Typing Indicator */}
-          {isTyping && (
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-white" />
               </div>
-              <div className="bg-white/10 rounded-2xl px-4 py-3">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            )}
+
+            {/* Application Form */}
+            {showForm && userPath && PATH_CONFIGS[userPath]?.formFields && (
+              <div className="bg-white/5 border border-white/20 rounded-xl p-6 mt-4">
+                <h3 className="font-orbitron text-lg font-bold text-white mb-4">Your Details</h3>
+                <form onSubmit={handleFormSubmit} className="space-y-4">
+                  {PATH_CONFIGS[userPath].formFields!.map((field) => (
+                    <div key={field.field}>
+                      <label className="block text-sm font-space text-gray-300 mb-1">
+                        {field.label} {field.required && <span className="text-coral">*</span>}
+                      </label>
+                      {field.type === 'file' ? (
+                        <div>
+                          <div 
+                            onClick={() => {
+                              const input = document.getElementById(`file-${field.field}`) as HTMLInputElement;
+                              input?.click();
+                            }}
+                            className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                              uploadedFiles[field.field] 
+                                ? 'border-coral bg-coral/10' 
+                                : 'border-white/20 hover:border-coral/50'
+                            }`}
+                          >
+                            <input
+                              id={`file-${field.field}`}
+                              type="file"
+                              className="hidden"
+                              onChange={(e) => handleFileChange(field.field, e)}
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            />
+                            {uploadedFiles[field.field] ? (
+                              <div className="flex items-center justify-center space-x-2 text-coral">
+                                <Check className="w-5 h-5" />
+                                <span className="font-space text-sm">{uploadedFiles[field.field].name}</span>
+                              </div>
+                            ) : (
+                              <div className="text-gray-400">
+                                <Upload className="w-6 h-6 mx-auto mb-1" />
+                                <span className="font-space text-sm">Click to upload</span>
+                              </div>
+                            )}
+                          </div>
+                          {field.helpText && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {field.helpText}{' '}
+                              {field.helpLink && (
+                                <a 
+                                  href={field.helpLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-coral hover:underline inline-flex items-center"
+                                >
+                                  Create here <ExternalLink className="w-3 h-3 ml-1" />
+                                </a>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <input
+                          type={field.type}
+                          value={formData[field.field] || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, [field.field]: e.target.value }))}
+                          placeholder={field.placeholder}
+                          required={field.required}
+                          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 font-space focus:outline-none focus:border-coral transition-colors"
+                        />
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="submit"
+                    className="w-full bg-coral hover:bg-coral-dark text-white font-space font-semibold py-3 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <span>Submit Application</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex items-start space-x-3">
+                <img 
+                  src={CHARACTER.profilePic}
+                  alt={CHARACTER.name}
+                  className="w-8 h-8 rounded-full object-cover border border-coral/50"
+                />
+                <div className="bg-white/10 rounded-2xl px-4 py-3">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Account Creation Prompt */}
-          {showAccountPrompt && (
-            <div className="flex justify-center space-x-4 mt-6">
-              <button
-                onClick={handleCreateAccount}
-                className="bg-coral hover:bg-coral-dark text-white font-space font-semibold px-6 py-3 rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <span>Create Account</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => navigate('/')}
-                className="bg-white/10 hover:bg-white/20 text-white font-space px-6 py-3 rounded-lg transition-colors"
-              >
-                Maybe Later
-              </button>
-            </div>
-          )}
+            {/* Completion Actions */}
+            {isComplete && !showForm && (
+              <div className="mt-6 space-y-4">
+                <a
+                  href={WHATSAPP_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-green-600 hover:bg-green-700 text-white font-space font-semibold py-3 rounded-lg transition-colors text-center"
+                >
+                  Follow up on WhatsApp
+                </a>
+                <button
+                  onClick={resetConversation}
+                  className="w-full bg-white/10 hover:bg-white/20 text-white font-space py-3 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Start New Conversation</span>
+                </button>
+              </div>
+            )}
 
-          <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} />
+          </div>
         </div>
       </div>
 
       {/* Input Area */}
-      {!isComplete && !showInitialChoices && userPath && (
+      {!isComplete && !showInitialChoices && !showForm && !showJobSelection && userPath && (
         <div className="bg-navy-dark/50 backdrop-blur-sm border-t border-white/10 px-4 py-4">
           <div className="max-w-3xl mx-auto">
             {/* Select Options */}
