@@ -330,12 +330,18 @@ const ChatbotInterface: React.FC = () => {
         }
 
         // Save application
-        await supabase.from('applications').insert({
+        const { data: insertedApp, error: insertError } = await supabase.from('applications').insert({
           user_path: userPath,
           data: allData,
           status: 'pending',
           created_at: new Date().toISOString()
-        });
+        }).select();
+
+        if (insertError) {
+          console.error('Application insert error:', insertError);
+        } else {
+          console.log('Application saved successfully:', insertedApp);
+        }
       } catch (err) {
         console.error('Error saving to Supabase:', err);
       }
