@@ -415,6 +415,26 @@ const ChatbotInterface: React.FC = () => {
   
   const progress = totalProgress > 0 ? (currentProgress / totalProgress) * 100 : 0;
 
+  // Typing animation state
+  const [typingText, setTypingText] = useState('');
+  const fullText = "I'm Blue OX";
+
+  useEffect(() => {
+    if (showHero) {
+      let index = 0;
+      setTypingText('');
+      const timer = setInterval(() => {
+        if (index < fullText.length) {
+          setTypingText(fullText.slice(0, index + 1));
+          index++;
+        } else {
+          clearInterval(timer);
+        }
+      }, 100);
+      return () => clearInterval(timer);
+    }
+  }, [showHero]);
+
   // Hero Section Component
   if (showHero) {
     return (
@@ -423,28 +443,62 @@ const ChatbotInterface: React.FC = () => {
         <header className="fixed top-0 left-0 right-0 z-50 bg-navy-dark/95 backdrop-blur-sm border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex items-center justify-between h-16">
-              <div className="flex items-center space-x-3">
-                <img src="/assets/logo1.png" alt="Blue OX" className="h-8" />
-                <span className="hidden sm:block text-xs font-medium text-white/80 max-w-[180px] leading-tight">
+              {/* Logo and Guarantee */}
+              <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                <img src="/assets/logo1.png" alt="Blue OX" className="h-8 flex-shrink-0" />
+                <span className="text-[10px] sm:text-xs font-medium text-white/80 leading-tight line-clamp-2">
                   Guaranteed Job in Europe in 90 Days Or We Work for Free
                 </span>
               </div>
-              <nav className="hidden md:flex items-center space-x-6">
+
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex items-center space-x-6 flex-shrink-0">
                 <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-coral font-space text-sm transition-colors">Contact us</a>
                 <Link to="/jobs" className="text-gray-300 hover:text-coral font-space text-sm transition-colors flex items-center">
                   <Briefcase className="w-4 h-4 mr-1" /> Jobs Open
                 </Link>
               </nav>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden text-white p-2 ml-2 flex-shrink-0"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
             </div>
+
+            {/* Mobile Navigation Dropdown */}
+            {mobileMenuOpen && (
+              <div className="md:hidden py-4 border-t border-white/10">
+                <div className="flex flex-col space-y-3">
+                  <a
+                    href={WHATSAPP_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-coral font-space text-sm"
+                  >
+                    Contact us
+                  </a>
+                  <Link
+                    to="/jobs"
+                    className="text-gray-300 hover:text-coral font-space text-sm flex items-center"
+                  >
+                    <Briefcase className="w-4 h-4 mr-1" /> Jobs Open
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
         {/* Hero Content */}
         <div className="flex-1 flex flex-col items-center justify-center px-4 pt-20">
-          {/* Hero Text - Visible above profile */}
-          <h1 className="font-orbitron text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-center mb-8">
-            <span className="text-white">I'm </span>
-            <span className="text-coral">Blue OX</span>
+          {/* Hero Text with Typing Animation */}
+          <h1 className="font-orbitron text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black text-center mb-8">
+            <span className="text-white">{typingText.slice(0, 4)}</span>
+            <span className="text-coral">{typingText.slice(4)}</span>
+            <span className="animate-pulse text-coral">|</span>
           </h1>
 
           {/* Profile Picture */}
@@ -595,50 +649,8 @@ const ChatbotInterface: React.FC = () => {
         </div>
       )}
 
-      {/* Hero Section - Boardy.ai Style */}
-      {messages.length <= 1 && !userPath && (
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] pt-16 px-4 relative overflow-hidden">
-          {/* Background Text */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-            <h1 className="text-[12vw] sm:text-[10vw] md:text-[8vw] font-orbitron font-black whitespace-nowrap">
-              <span className="text-white/20">I'm </span>
-              <span className="text-coral/30">Blue OX</span>
-            </h1>
-          </div>
-
-          {/* Character Card */}
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="bg-white rounded-3xl p-2 shadow-2xl mb-6">
-              <img
-                src={CHARACTER.profilePic}
-                alt={CHARACTER.name}
-                className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-2xl object-contain"
-              />
-            </div>
-
-            {/* CTA Button */}
-            <button
-              onClick={() => {
-                const chatArea = document.getElementById('chat-area');
-                chatArea?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="bg-coral hover:bg-coral-dark text-white font-space font-semibold px-8 py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg"
-            >
-              Message
-            </button>
-
-            {/* Scroll Indicator */}
-            <div className="mt-12 animate-bounce">
-              <svg className="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Chat Area */}
-      <div id="chat-area" className={`flex-1 overflow-y-auto px-4 py-6 ${userPath && !isComplete ? 'pt-32' : 'pt-24'} ${messages.length <= 1 && !userPath ? 'min-h-screen' : ''}`}>
+      <div id="chat-area" className={`flex-1 overflow-y-auto px-4 py-6 ${userPath && !isComplete ? 'pt-32' : 'pt-24'}`}>
         <div className="max-w-3xl mx-auto">
 
           {/* Messages */}
