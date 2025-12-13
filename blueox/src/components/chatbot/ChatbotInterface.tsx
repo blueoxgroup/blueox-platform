@@ -415,7 +415,7 @@ const ChatbotInterface: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-3">
-                <img src="/assets/logo.png" alt="Blue OX" className="h-8" />
+                <img src="/assets/logo1.png" alt="Blue OX" className="h-8" />
                 <span className="hidden sm:block text-xs font-medium text-white/80 max-w-[180px] leading-tight">
                   Guaranteed Job in Europe in 90 Days Or We Work for Free
                 </span>
@@ -431,39 +431,35 @@ const ChatbotInterface: React.FC = () => {
         </header>
 
         {/* Hero Content */}
-        <div className="flex-1 flex flex-col items-center justify-center px-4 pt-16 relative overflow-hidden">
-          {/* Background Text - Behind everything */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-            <h1 className="font-orbitron text-[15vw] md:text-[12vw] font-black whitespace-nowrap">
-              <span className="text-white/30">I'm </span>
-              <span className="text-coral/40">Blue OX</span>
-            </h1>
+        <div className="flex-1 flex flex-col items-center justify-center px-4 pt-20">
+          {/* Hero Text - Visible above profile */}
+          <h1 className="font-orbitron text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-center mb-8">
+            <span className="text-white">I'm </span>
+            <span className="text-coral">Blue OX</span>
+          </h1>
+
+          {/* Profile Picture */}
+          <div className="bg-white rounded-3xl p-2 shadow-2xl mb-8">
+            <img
+              src={CHARACTER.profilePic}
+              alt={CHARACTER.name}
+              className="w-32 h-32 md:w-40 md:h-40 rounded-2xl object-cover"
+            />
           </div>
 
-          {/* Profile Picture - On top of text */}
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="bg-white rounded-3xl p-2 shadow-2xl mb-8">
-              <img
-                src={CHARACTER.profilePic}
-                alt={CHARACTER.name}
-                className="w-36 h-36 md:w-44 md:h-44 rounded-2xl object-cover"
-              />
-            </div>
+          {/* Message Button */}
+          <button
+            onClick={startChat}
+            className="bg-coral hover:bg-coral-dark text-white font-space font-semibold text-lg px-12 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            Message
+          </button>
 
-            {/* Message Button */}
-            <button
-              onClick={startChat}
-              className="bg-coral hover:bg-coral-dark text-white font-space font-semibold text-lg px-12 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              Message
-            </button>
-
-            {/* Scroll indicator */}
-            <div className="mt-12 animate-bounce">
-              <svg className="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </div>
+          {/* Scroll indicator */}
+          <div className="mt-12 animate-bounce">
+            <svg className="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
           </div>
         </div>
       </div>
@@ -479,7 +475,7 @@ const ChatbotInterface: React.FC = () => {
             {/* Logo with Guarantee */}
             <Link to="/" className="flex items-center space-x-3">
               <img
-                src="/assets/logo.png"
+                src="/assets/logo1.png"
                 alt="Blue OX"
                 className="h-8 sm:h-10 w-auto"
               />
