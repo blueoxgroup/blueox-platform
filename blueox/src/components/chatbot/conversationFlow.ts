@@ -3,10 +3,10 @@ import { PathConfig, ChatChoice } from './types';
 // Blue OX Character Profile
 export const CHARACTER = {
   name: "Blue OX",
-  role: "Your European Opportunities Guide",
+  role: "Your European Job Assistant",
   profilePic: "/assets/pfp.png",
   greeting: "Hey there! I'm Blue OX, your buddy for finding awesome opportunities in Europe!",
-  status: "Online - Ready to help you shine!"
+  status: "Online - Ready to help!"
 };
 
 export const INITIAL_CHOICES: ChatChoice[] = [
@@ -36,22 +36,20 @@ export const INITIAL_CHOICES: ChatChoice[] = [
   }
 ];
 
-export const WELCOME_MESSAGE = `Hey there! I'm Blue OX, your buddy for finding awesome opportunities in Europe! What's your European dream?
-
-I've helped tons of amazing people just like you discover incredible opportunities across Europe. This is gonna be so exciting - you're gonna love what we find together!
-
-You've got this! I believe in you! So tell me - what brings you here today?`;
+export const WELCOME_MESSAGE = `Hey! I'm Blue OX. What brings you here today?`;
 
 export const WHATSAPP_LINK = "https://wa.me/message/F6QOLB6IS3VHF1";
 
 // Company flow - redirect to WhatsApp
-export const COMPANY_REDIRECT_MESSAGE = `Oh yeah! That's exactly what we're looking for! We help companies connect with talented professionals from around the world.
+export const COMPANY_REDIRECT_MESSAGE = `Great! We specialize in connecting companies with skilled Blue Collar workers across Europe.
 
-For the best experience, let's chat directly. Our team can walk you through everything and answer all your questions.
+Our expertise includes placing Electricians, Welders, Carpenters, Truck Drivers, Construction Workers, Warehouse Staff, and more.
+
+For the best experience, let's chat directly. Our team can walk you through everything.
 
 Reach out to us here: ${WHATSAPP_LINK}
 
-This is gonna be great! Looking forward to hearing from you!`;
+Looking forward to hearing from you!`;
 
 export const PATH_CONFIGS: Record<string, PathConfig> = {
   student_university: {
@@ -67,10 +65,10 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
       },
       {
         id: 'target_countries',
-        question: "Perfect! Now, which European countries are you interested in?\n\nPick as many as you like - keeping your options open is always smart! You can do it!",
+        question: "Perfect! Now, which European countries are you interested in?\n\nPick as many as you like - keeping your options open is always smart!",
         inputType: 'multiselect',
         field: 'targetCountries',
-        inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'France', 'Spain', 'Italy', 'Other']
+        inputOptions: ['Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'France', 'Spain', 'Italy', 'Greece', 'Slovakia', 'Romania', 'Serbia', 'Bulgaria', 'Lithuania', 'Croatia', 'Other']
       },
       {
         id: 'field_of_study',
@@ -110,17 +108,17 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
     steps: [
       {
         id: 'target_countries',
-        question: "Looking for work in Europe? You've come to the right place! This is gonna be awesome!\n\nWhich countries are you interested in working in?",
+        question: "Looking for work in Europe? You've come to the right place!\n\nWhich countries are you interested in working in?",
         inputType: 'multiselect',
         field: 'targetCountries',
-        inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'Belgium', 'Sweden', 'Norway', 'Any']
+        inputOptions: ['Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Belgium', 'Greece', 'Slovakia', 'Romania', 'Serbia', 'Bulgaria', 'Lithuania', 'Croatia', 'Any']
       },
       {
         id: 'skills',
-        question: "Tell me about your skills - what are you good at?\n\nSelect all that apply. I totally get it - you've got lots of talents!",
+        question: "What are your main skills?\n\nSelect all that apply.",
         inputType: 'multiselect',
         field: 'skills',
-        inputOptions: ['Technical/Trade Skills', 'Language Skills', 'Management', 'Customer Service', 'Healthcare', 'IT/Technology', 'Driving', 'Construction', 'Manufacturing', 'Hospitality', 'Agriculture', 'Other']
+        inputOptions: ['Electricians', 'Scaffolders', 'Mig Welding', 'Mug Welding', 'Carpentry', 'Truck Drivers', 'Forklift Drivers', 'Construction Helpers', 'Plumbers', 'HVAC Techs', 'Caregivers', 'Warehouse Workers', 'Ship Building', 'Any']
       },
       {
         id: 'experience_years',
@@ -150,11 +148,10 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
       { field: 'email', label: 'Email Address', type: 'email', placeholder: 'your.email@example.com', required: true },
       { field: 'whatsapp', label: 'WhatsApp Number', type: 'tel', placeholder: '+234 XXX XXX XXXX', required: true },
       { field: 'cv', label: 'Europass CV', type: 'file', required: true, helpText: 'Create one at europass.europa.eu/en/create-europass-cv', helpLink: 'https://europass.europa.eu/en/create-europass-cv' },
-      { field: 'passport', label: 'Passport (clearly scanned)', type: 'file', required: true },
-      { field: 'policeReport', label: 'Police Letter from Interpol', type: 'file', required: true }
+      { field: 'passport', label: 'Passport (clearly scanned)', type: 'file', required: true }
     ]
   },
-  
+
   student_job: {
     id: 'student_job',
     name: 'Student Job Path',
@@ -168,10 +165,10 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
       },
       {
         id: 'target_countries',
-        question: "Which European country are you interested in? This is gonna be so exciting!",
+        question: "Which European country are you interested in?",
         inputType: 'multiselect',
         field: 'targetCountries',
-        inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'France', 'Spain', 'Italy', 'Other']
+        inputOptions: ['Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'France', 'Spain', 'Italy', 'Greece', 'Slovakia', 'Romania', 'Serbia', 'Bulgaria', 'Lithuania', 'Croatia', 'Other']
       },
       {
         id: 'start_date',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileText, CreditCard, Briefcase, CheckCircle, Clock, Download, Plus, X, Search, LogOut, Shield, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Users, FileText, CreditCard, Briefcase, CheckCircle, Clock, Download, Plus, X, Search, LogOut, Shield, Eye, EyeOff, Trash2, ChevronDown, ChevronUp, Edit2 } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { supabase, Client, Application, Document as DocType, Payment, Job, ClientPaymentPhases } from './lib/supabase';
 
@@ -110,6 +110,8 @@ const AdminDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [editingApplication, setEditingApplication] = useState<(Application & { client?: Client }) | null>(null);
 
   useEffect(() => {
     if (isAdmin) fetchAllData();
@@ -247,8 +249,60 @@ const AdminDashboard: React.FC = () => {
 
   const deleteApplication = async (id: string) => {
     if (!confirm('Delete this application? This action cannot be undone.')) return;
-    await supabase.from('applications').delete().eq('id', id);
-    fetchAllData();
+    try {
+      const { error } = await supabase.from('applications').delete().eq('id', id);
+      if (error) {
+        console.error('Delete error:', error);
+        alert(`Failed to delete application: ${error.message}`);
+      } else {
+        // Remove from expanded rows if it was expanded
+        setExpandedRows(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        fetchAllData();
+      }
+    } catch (err) {
+      console.error('Delete exception:', err);
+      alert(`Delete failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const toggleRowExpanded = (id: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const saveApplication = async (app: Application & { client?: Client }) => {
+    try {
+      const { error } = await supabase
+        .from('applications')
+        .update({
+          data: app.data,
+          status: app.status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', app.id);
+
+      if (error) {
+        console.error('Update error:', error);
+        alert(`Failed to update application: ${error.message}`);
+      } else {
+        setEditingApplication(null);
+        fetchAllData();
+      }
+    } catch (err) {
+      console.error('Update exception:', err);
+      alert(`Update failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
   };
 
   const downloadDocument = async (doc: DocType) => {
@@ -426,48 +480,176 @@ const AdminDashboard: React.FC = () => {
                 <table className="w-full min-w-[700px]">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Applicant Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-8"></th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Applicant</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Contact</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Path</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Details</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {applications.map((app) => (
-                      <tr key={app.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-navy">{String(app.data?.fullName || app.data?.name || 'Anonymous')}</td>
-                        <td className="px-4 py-3 capitalize">{app.user_path || app.application_type || '-'}</td>
-                        <td className="px-4 py-3">{getStatusBadge(app.status)}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
-                          {app.data?.email && <div>Email: {String(app.data.email)}</div>}
-                          {app.data?.phone && <div>Phone: {String(app.data.phone)}</div>}
-                          {app.data?.whatsapp && <div>WhatsApp: {String(app.data.whatsapp)}</div>}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center space-x-2">
-                            <select
-                              value={app.status}
-                              onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
-                              className="text-sm border rounded px-2 py-1"
-                            >
-                              <option value="pending">Pending</option>
-                              <option value="in_review">In Review</option>
-                              <option value="documents_requested">Docs Requested</option>
-                              <option value="approved">Approved</option>
-                              <option value="rejected">Rejected</option>
-                            </select>
-                            <button
-                              onClick={() => deleteApplication(app.id)}
-                              className="text-red-600 hover:text-red-800 transition"
-                              title="Delete application"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {applications.map((app) => {
+                      const isExpanded = expandedRows.has(app.id);
+                      const appData = app.data || {};
+                      const fullName = String(appData.fullName || appData.name || 'Anonymous');
+                      const email = String(appData.email || '-');
+                      const whatsapp = String(appData.whatsapp || appData.phone || '-');
+
+                      return (
+                        <React.Fragment key={app.id}>
+                          <tr className={`hover:bg-gray-50 ${isExpanded ? 'bg-blue-50' : ''}`}>
+                            <td className="px-4 py-3">
+                              <button
+                                onClick={() => toggleRowExpanded(app.id)}
+                                className="text-gray-500 hover:text-navy transition"
+                                title={isExpanded ? 'Collapse details' : 'Expand details'}
+                              >
+                                {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                              </button>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="font-medium text-navy">{fullName}</div>
+                              {appData.nationality && <div className="text-xs text-gray-500">{String(appData.nationality)}</div>}
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              <div className="text-gray-700">{email}</div>
+                              <div className="text-gray-500 text-xs">{whatsapp}</div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="capitalize text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                {(app.user_path || app.application_type || '-').replace('_', ' ')}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">{getStatusBadge(app.status)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">
+                              {new Date(app.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center space-x-2">
+                                <select
+                                  value={app.status}
+                                  onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
+                                  className="text-sm border rounded px-2 py-1"
+                                >
+                                  <option value="pending">Pending</option>
+                                  <option value="in_review">In Review</option>
+                                  <option value="documents_requested">Docs Requested</option>
+                                  <option value="approved">Approved</option>
+                                  <option value="rejected">Rejected</option>
+                                </select>
+                                <button
+                                  onClick={() => setEditingApplication(app)}
+                                  className="text-blue-600 hover:text-blue-800 transition"
+                                  title="Edit application"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => deleteApplication(app.id)}
+                                  className="text-red-600 hover:text-red-800 transition"
+                                  title="Delete application"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                          {/* Expanded Details Row */}
+                          {isExpanded && (
+                            <tr className="bg-gray-50">
+                              <td colSpan={7} className="px-4 py-4">
+                                <div className="bg-white rounded-lg p-4 shadow-inner">
+                                  <h4 className="font-semibold text-navy mb-3 flex items-center">
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    Full Application Details
+                                  </h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                                    {/* Personal Information */}
+                                    <div className="space-y-2">
+                                      <h5 className="font-medium text-gray-700 border-b pb-1">Personal Info</h5>
+                                      {appData.fullName && <div><span className="text-gray-500">Full Name:</span> {String(appData.fullName)}</div>}
+                                      {appData.email && <div><span className="text-gray-500">Email:</span> {String(appData.email)}</div>}
+                                      {appData.whatsapp && <div><span className="text-gray-500">WhatsApp:</span> {String(appData.whatsapp)}</div>}
+                                      {appData.nationality && <div><span className="text-gray-500">Nationality:</span> {String(appData.nationality)}</div>}
+                                    </div>
+
+                                    {/* Preferences */}
+                                    <div className="space-y-2">
+                                      <h5 className="font-medium text-gray-700 border-b pb-1">Preferences</h5>
+                                      {appData.targetCountries && (
+                                        <div>
+                                          <span className="text-gray-500">Countries:</span>{' '}
+                                          {Array.isArray(appData.targetCountries)
+                                            ? appData.targetCountries.join(', ')
+                                            : String(appData.targetCountries)}
+                                        </div>
+                                      )}
+                                      {appData.educationLevel && <div><span className="text-gray-500">Education:</span> {String(appData.educationLevel)}</div>}
+                                      {appData.fieldOfStudy && (
+                                        <div>
+                                          <span className="text-gray-500">Field:</span>{' '}
+                                          {Array.isArray(appData.fieldOfStudy)
+                                            ? appData.fieldOfStudy.join(', ')
+                                            : String(appData.fieldOfStudy)}
+                                        </div>
+                                      )}
+                                      {appData.budget && <div><span className="text-gray-500">Budget:</span> {String(appData.budget)}</div>}
+                                      {appData.startDate && <div><span className="text-gray-500">Start Date:</span> {String(appData.startDate)}</div>}
+                                    </div>
+
+                                    {/* Work Preferences (for worker/student_job paths) */}
+                                    <div className="space-y-2">
+                                      <h5 className="font-medium text-gray-700 border-b pb-1">Work Info</h5>
+                                      {appData.skills && (
+                                        <div>
+                                          <span className="text-gray-500">Skills:</span>{' '}
+                                          {Array.isArray(appData.skills)
+                                            ? appData.skills.join(', ')
+                                            : String(appData.skills)}
+                                        </div>
+                                      )}
+                                      {appData.experienceYears && <div><span className="text-gray-500">Experience:</span> {String(appData.experienceYears)}</div>}
+                                      {appData.salaryExpectation && <div><span className="text-gray-500">Expected Salary:</span> {String(appData.salaryExpectation)}</div>}
+                                      {appData.availability && <div><span className="text-gray-500">Availability:</span> {String(appData.availability)}</div>}
+                                      {appData.selectedJob && <div><span className="text-gray-500">Selected Job:</span> {String(appData.selectedJob)}</div>}
+                                    </div>
+                                  </div>
+
+                                  {/* Documents */}
+                                  {appData.uploadedDocuments && (
+                                    <div className="mt-4 pt-4 border-t">
+                                      <h5 className="font-medium text-gray-700 mb-2">Uploaded Documents</h5>
+                                      <div className="flex flex-wrap gap-2">
+                                        {(Array.isArray(appData.uploadedDocuments)
+                                          ? appData.uploadedDocuments
+                                          : [appData.uploadedDocuments]
+                                        ).map((doc: string, idx: number) => (
+                                          <span key={idx} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                                            {doc}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Raw Data (for debugging/viewing all fields) */}
+                                  <details className="mt-4 pt-4 border-t">
+                                    <summary className="cursor-pointer text-gray-500 text-xs hover:text-gray-700">
+                                      View Raw Data (JSON)
+                                    </summary>
+                                    <pre className="mt-2 bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+                                      {JSON.stringify(appData, null, 2)}
+                                    </pre>
+                                  </details>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
                 {applications.length === 0 && <p className="text-center py-8 text-gray-500">No applications yet.</p>}
@@ -623,6 +805,241 @@ const AdminDashboard: React.FC = () => {
               <button type="submit" className="w-full mt-4 bg-coral text-white py-2 rounded-lg font-medium hover:bg-coral-dark">
                 {editingItem.id ? 'Update Job' : 'Create Job'}
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Application Modal */}
+      {editingApplication && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-orbitron text-xl font-bold text-navy">Edit Application</h3>
+              <button onClick={() => setEditingApplication(null)}><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              saveApplication(editingApplication);
+            }}>
+              <div className="space-y-4">
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <select
+                    value={editingApplication.status}
+                    onChange={(e) => setEditingApplication({ ...editingApplication, status: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="in_review">In Review</option>
+                    <option value="documents_requested">Documents Requested</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+
+                {/* Personal Information */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium text-navy mb-3">Personal Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        value={String(editingApplication.data?.fullName || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, fullName: e.target.value }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Email</label>
+                      <input
+                        type="email"
+                        value={String(editingApplication.data?.email || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, email: e.target.value }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">WhatsApp</label>
+                      <input
+                        type="text"
+                        value={String(editingApplication.data?.whatsapp || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, whatsapp: e.target.value }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Nationality</label>
+                      <input
+                        type="text"
+                        value={String(editingApplication.data?.nationality || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, nationality: e.target.value }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preferences */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium text-navy mb-3">Preferences</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Target Countries</label>
+                      <input
+                        type="text"
+                        value={Array.isArray(editingApplication.data?.targetCountries)
+                          ? editingApplication.data.targetCountries.join(', ')
+                          : String(editingApplication.data?.targetCountries || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, targetCountries: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                        placeholder="Comma-separated list"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Education Level</label>
+                      <input
+                        type="text"
+                        value={String(editingApplication.data?.educationLevel || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, educationLevel: e.target.value }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Budget</label>
+                      <input
+                        type="text"
+                        value={String(editingApplication.data?.budget || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, budget: e.target.value }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Start Date</label>
+                      <input
+                        type="text"
+                        value={String(editingApplication.data?.startDate || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, startDate: e.target.value }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Work Info (for worker paths) */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium text-navy mb-3">Work Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Skills</label>
+                      <input
+                        type="text"
+                        value={Array.isArray(editingApplication.data?.skills)
+                          ? editingApplication.data.skills.join(', ')
+                          : String(editingApplication.data?.skills || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, skills: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                        placeholder="Comma-separated list"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Experience Years</label>
+                      <input
+                        type="text"
+                        value={String(editingApplication.data?.experienceYears || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, experienceYears: e.target.value }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Salary Expectation</label>
+                      <input
+                        type="text"
+                        value={String(editingApplication.data?.salaryExpectation || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, salaryExpectation: e.target.value }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Availability</label>
+                      <input
+                        type="text"
+                        value={String(editingApplication.data?.availability || '')}
+                        onChange={(e) => setEditingApplication({
+                          ...editingApplication,
+                          data: { ...editingApplication.data, availability: e.target.value }
+                        })}
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Admin Notes */}
+                <div className="border-t pt-4">
+                  <label className="block text-sm font-medium mb-1">Admin Notes</label>
+                  <textarea
+                    value={String(editingApplication.data?.adminNotes || '')}
+                    onChange={(e) => setEditingApplication({
+                      ...editingApplication,
+                      data: { ...editingApplication.data, adminNotes: e.target.value }
+                    })}
+                    className="w-full border rounded-lg px-3 py-2 h-24"
+                    placeholder="Internal notes about this application..."
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setEditingApplication(null)}
+                  className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-coral text-white py-2 rounded-lg font-medium hover:bg-coral-dark"
+                >
+                  Save Changes
+                </button>
+              </div>
             </form>
           </div>
         </div>

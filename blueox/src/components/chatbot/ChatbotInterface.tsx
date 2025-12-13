@@ -18,17 +18,20 @@ const generateId = () => Math.random().toString(36).substring(2, 15);
 
 // Skill mapping for job matching
 const SKILL_KEYWORDS: Record<string, string[]> = {
-  'Technical/Trade Skills': ['technical', 'trade', 'mechanic', 'electrician', 'plumber', 'welder'],
-  'Manufacturing': ['manufacturing', 'factory', 'production', 'warehouse', 'assembly'],
-  'Healthcare': ['healthcare', 'care', 'nurse', 'medical', 'hospital', 'elderly'],
-  'IT/Technology': ['it', 'technology', 'software', 'developer', 'tech', 'computer'],
-  'Hospitality': ['hotel', 'restaurant', 'hospitality', 'kitchen', 'chef', 'reception'],
-  'Construction': ['construction', 'building', 'builder', 'carpenter'],
-  'Driving': ['driver', 'driving', 'delivery', 'logistics', 'transport'],
-  'Agriculture': ['farm', 'agriculture', 'agricultural', 'harvest'],
-  'Customer Service': ['customer', 'service', 'reception', 'support'],
-  'Language Skills': ['language', 'translator', 'interpreter'],
-  'Management': ['manager', 'management', 'supervisor', 'team lead'],
+  'Electricians': ['electrician', 'electrical', 'wiring', 'electric'],
+  'Scaffolders': ['scaffolder', 'scaffold', 'scaffolding'],
+  'Mig Welding': ['mig', 'welding', 'welder', 'weld'],
+  'Mug Welding': ['mug', 'welding', 'welder', 'weld'],
+  'Carpentry': ['carpenter', 'carpentry', 'woodwork', 'wood'],
+  'Truck Drivers': ['truck', 'driver', 'driving', 'lorry', 'hgv', 'cdl'],
+  'Forklift Drivers': ['forklift', 'fork lift', 'warehouse', 'operator'],
+  'Construction Helpers': ['construction', 'helper', 'laborer', 'building'],
+  'Plumbers': ['plumber', 'plumbing', 'pipe', 'pipes'],
+  'HVAC Techs': ['hvac', 'heating', 'cooling', 'air conditioning', 'ventilation'],
+  'Caregivers': ['caregiver', 'care', 'elderly', 'healthcare', 'nursing'],
+  'Warehouse Workers': ['warehouse', 'storage', 'logistics', 'packing'],
+  'Ship Building': ['ship', 'shipyard', 'marine', 'vessel', 'boat'],
+  'Any': ['any', 'general', 'all'],
 };
 
 const ChatbotInterface: React.FC = () => {
@@ -52,6 +55,7 @@ const ChatbotInterface: React.FC = () => {
   const [showJobSelection, setShowJobSelection] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showHero, setShowHero] = useState(true);
 
   // Reset conversation
   const resetConversation = () => {
@@ -68,7 +72,13 @@ const ChatbotInterface: React.FC = () => {
     setMatchedJobs([]);
     setSelectedJob(null);
     setShowJobSelection(false);
+    setShowHero(true);
     localStorage.removeItem('blueox_conversation_data');
+  };
+
+  // Start the chat from hero
+  const startChat = () => {
+    setShowHero(false);
     setTimeout(() => {
       addBotMessage(WELCOME_MESSAGE, INITIAL_CHOICES);
     }, 300);
@@ -83,13 +93,7 @@ const ChatbotInterface: React.FC = () => {
     scrollToBottom();
   }, [messages, scrollToBottom, showForm, showJobSelection]);
 
-  // Initialize welcome message
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      addBotMessage(WELCOME_MESSAGE, INITIAL_CHOICES);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+  // Chat is started by clicking Message button in hero section
 
   const addBotMessage = (content: string, choices?: ChatChoice[], inputType?: string, inputOptions?: string[], placeholder?: string, field?: string) => {
     setIsTyping(true);
@@ -120,61 +124,58 @@ const ChatbotInterface: React.FC = () => {
   };
 
   // Fetch live jobs from Supabase and match based on user preferences
+  // Less strict matching: if a country is selected, show ALL jobs from that country
   const fetchAndMatchJobs = async (data: CollectedData): Promise<Job[]> => {
     const userSkills = (data.skills as string[]) || [];
     const userCountries = (data.targetCountries as string[]) || [];
-    
+
     try {
       // Fetch active jobs from Supabase
       const { data: jobsData, error } = await supabase
         .from('jobs')
         .select('*')
         .eq('is_active', true);
-      
+
       if (error || !jobsData) {
         console.error('Error fetching jobs:', error);
         return [];
       }
 
-      // Match jobs based on user preferences
+      // Filter jobs by country only - show ALL jobs from selected countries
       const matchedJobs = jobsData.filter(job => {
-        // Country matching
-        const countryMatch = userCountries.length === 0 || 
-          userCountries.includes(job.country) || 
-          userCountries.includes('Any') || 
-          userCountries.includes('Other');
-        
-        if (!countryMatch) return false;
-
-        // Skill matching - check if job title/description contains skill keywords
-        if (userSkills.length === 0 || userSkills.includes('Other')) return true;
-        
-        const jobText = `${job.title} ${job.description} ${job.requirements || ''}`.toLowerCase();
-        
-        return userSkills.some(skill => {
-          const keywords = SKILL_KEYWORDS[skill] || [skill.toLowerCase()];
-          return keywords.some(keyword => jobText.includes(keyword));
-        });
+        // If no countries selected or "Any" selected, show all jobs
+        if (userCountries.length === 0 || userCountries.includes('Any') || userCountries.includes('Other')) {
+          return true;
+        }
+        // Otherwise, only filter by country match
+        return userCountries.includes(job.country);
       });
 
-      // Sort by relevance (more keyword matches = higher score)
+      // Sort by skill relevance (jobs matching skills rank higher, but all are shown)
       const scoredJobs = matchedJobs.map(job => {
-        const jobText = `${job.title} ${job.description}`.toLowerCase();
+        const jobText = `${job.title} ${job.description} ${job.requirements || ''}`.toLowerCase();
         let score = 0;
+
+        // Add score for skill matches (for sorting, not filtering)
         userSkills.forEach(skill => {
+          if (skill === 'Any') return;
           const keywords = SKILL_KEYWORDS[skill] || [skill.toLowerCase()];
           keywords.forEach(keyword => {
-            if (jobText.includes(keyword)) score++;
+            if (jobText.includes(keyword)) score += 2;
           });
         });
-        if (userCountries.includes(job.country)) score += 2;
+
+        // Boost exact country match
+        if (userCountries.includes(job.country)) score += 1;
+
         return { ...job, score };
       });
 
+      // Sort by score (skill-matched jobs appear first)
       scoredJobs.sort((a, b) => b.score - a.score);
-      
-      // Convert to Job type format
-      return scoredJobs.slice(0, 5).map(job => ({
+
+      // Convert to Job type format - show more jobs (up to 10)
+      return scoredJobs.slice(0, 10).map(job => ({
         id: job.id,
         title: job.title,
         company: job.company || 'Blue Ox Partner',
@@ -399,6 +400,71 @@ const ChatbotInterface: React.FC = () => {
   
   const progress = totalProgress > 0 ? (currentProgress / totalProgress) * 100 : 0;
 
+  // Hero Section Component
+  if (showHero) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy via-navy-dark to-navy flex flex-col">
+        {/* Fixed Header */}
+        <header className="fixed top-0 left-0 right-0 z-50 bg-navy-dark/95 backdrop-blur-sm border-b border-white/10">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center space-x-2">
+                <img src="/logo1.png" alt="Blue OX" className="h-8" />
+              </div>
+              <nav className="hidden md:flex items-center space-x-6">
+                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-coral font-space text-sm transition-colors">Contact us</a>
+                <Link to="/jobs" className="text-gray-300 hover:text-coral font-space text-sm transition-colors flex items-center">
+                  <Briefcase className="w-4 h-4 mr-1" /> Jobs Open
+                </Link>
+              </nav>
+            </div>
+          </div>
+        </header>
+
+        {/* Hero Content */}
+        <div className="flex-1 flex flex-col items-center justify-center px-4 pt-16">
+          {/* Background Text */}
+          <div className="relative w-full max-w-4xl">
+            <div className="text-center">
+              <h1 className="font-orbitron text-6xl md:text-8xl lg:text-9xl font-bold select-none">
+                <span className="text-white/80">I'm </span>
+                <span className="text-coral">Blue OX</span>
+              </h1>
+            </div>
+
+            {/* Profile Picture - Positioned over the text */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/3 z-10">
+              <div className="bg-white rounded-2xl p-2 shadow-2xl">
+                <img
+                  src={CHARACTER.profilePic}
+                  alt={CHARACTER.name}
+                  className="w-32 h-32 md:w-40 md:h-40 rounded-xl object-cover"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Message Button */}
+          <div className="mt-24 md:mt-28">
+            <button
+              onClick={startChat}
+              className="bg-coral hover:bg-coral-dark text-white font-space font-semibold text-lg px-12 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              Message
+            </button>
+          </div>
+
+          {/* Scroll indicator */}
+          <div className="mt-12 animate-bounce">
+            <svg className="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-navy via-navy-dark to-navy flex flex-col">
       {/* Fixed Header */}
@@ -422,7 +488,7 @@ const ChatbotInterface: React.FC = () => {
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-coral font-space text-sm transition-colors"
               >
-                Talk to previous customers
+                Talk to Previous Clients
               </a>
               <a 
                 href={WHATSAPP_LINK} 
@@ -468,7 +534,7 @@ const ChatbotInterface: React.FC = () => {
                   rel="noopener noreferrer"
                   className="text-gray-300 hover:text-coral font-space text-sm"
                 >
-                  Talk to previous customers
+                  Talk to Previous Clients
                 </a>
                 <a 
                   href={WHATSAPP_LINK} 
@@ -720,6 +786,12 @@ const ChatbotInterface: React.FC = () => {
                       )}
                     </div>
                   ))}
+                  {/* EU Consent Notice */}
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-3 mt-4">
+                    <p className="text-xs text-gray-400 font-space">
+                      By uploading documents and submitting this form, you consent to Blue OX using your uploads and personal data for processing your application in accordance with EU data protection regulations.
+                    </p>
+                  </div>
                   <button
                     type="submit"
                     disabled={isSubmitting}

@@ -232,8 +232,8 @@
 
 # Gatsby files
 **/.cache/
+# Ignore public folders except our frontend assets
 **/public
-# But keep frontend public folders
 !blueox/public/
 !blueox/public/**
 !blueox-admin/public/
