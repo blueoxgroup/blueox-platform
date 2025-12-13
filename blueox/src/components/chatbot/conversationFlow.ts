@@ -36,7 +36,13 @@ export const INITIAL_CHOICES: ChatChoice[] = [
   }
 ];
 
-export const WELCOME_MESSAGE = `Hey! I'm Blue OX. What brings you here today?`;
+export const WELCOME_MESSAGE = `Hey! I'm Blue OX.
+
+I've helped over 200 people just like you find schools and jobs across Europe - from the Netherlands to Poland, Czech Republic, Hungary, and beyond.
+
+Here's what I do: I find you the right opportunity, walk you through the paperwork, and get you there. And if you're looking for work, we guarantee you a job in 90 days - or we work for free.
+
+So tell me, what brings you here today?`;
 
 export const WHATSAPP_LINK = "https://wa.me/message/F6QOLB6IS3VHF1";
 
