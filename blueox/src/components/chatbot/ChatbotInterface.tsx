@@ -446,7 +446,12 @@ const ChatbotInterface: React.FC = () => {
               {/* Logo and Guarantee */}
               <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                 <img src="/assets/logo1.png" alt="Blue OX" className="h-8 flex-shrink-0" />
-                <span className="text-[10px] sm:text-xs font-medium text-white/80 leading-tight line-clamp-2">
+                {/* Short version for mobile */}
+                <span className="sm:hidden text-xs font-medium text-white/80">
+                  Guaranteed Job in Europe
+                </span>
+                {/* Full version for larger screens */}
+                <span className="hidden sm:block text-xs font-medium text-white/80 leading-tight max-w-[200px]">
                   Guaranteed Job in Europe in 90 Days Or We Work for Free
                 </span>
               </div>
@@ -536,12 +541,17 @@ const ChatbotInterface: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo with Guarantee */}
-            <Link to="/" className="flex items-center space-x-3">
+            <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
               <img
                 src="/assets/logo1.png"
                 alt="Blue OX"
                 className="h-8 sm:h-10 w-auto"
               />
+              {/* Short version for mobile */}
+              <span className="sm:hidden text-xs font-medium text-white/80">
+                Guaranteed Job in Europe
+              </span>
+              {/* Full version for larger screens */}
               <span className="hidden sm:block text-xs font-medium text-white/80 max-w-[180px] leading-tight">
                 Guaranteed Job in Europe in 90 Days Or We Work for Free
               </span>
