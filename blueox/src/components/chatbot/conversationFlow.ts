@@ -3,8 +3,8 @@ import { PathConfig, ChatChoice } from './types';
 // Blue OX Character Profile
 export const CHARACTER = {
   name: "Blue OX",
-  role: "",
-  profilePic: "/imgs/blue-ox-profile.jpg",
+  role: "Your European Opportunities Guide",
+  profilePic: "/assets/pfp.png",
   greeting: "Hey there! I'm Blue OX, your buddy for finding awesome opportunities in Europe!",
   status: "Online - Ready to help you shine!"
 };

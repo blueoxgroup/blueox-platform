@@ -406,12 +406,13 @@ const ChatbotInterface: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-coral rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">BO</span>
-              </div>
-              <span className="font-orbitron text-lg font-bold text-white hidden sm:block">Blue Ox</span>
-            </div>
+            <Link to="/" className="flex items-center">
+              <img
+                src="/assets/logo.png"
+                alt="The Blue OX - Earn while you study in Europe"
+                className="h-10 sm:h-12 w-auto"
+              />
+            </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
@@ -515,24 +516,51 @@ const ChatbotInterface: React.FC = () => {
         </div>
       )}
 
-      {/* Chat Area with Emmanuel */}
-      <div className={`flex-1 overflow-y-auto px-4 py-6 ${userPath && !isComplete ? 'pt-32' : 'pt-24'}`}>
-        <div className="max-w-3xl mx-auto">
-          {/* Emmanuel's Profile Card */}
-          {messages.length <= 1 && (
-            <div className="flex items-center space-x-4 mb-6 p-4 bg-white/5 rounded-xl border border-white/10">
-              <img 
-                src={CHARACTER.profilePic} 
+      {/* Hero Section - Boardy.ai Style */}
+      {messages.length <= 1 && !userPath && (
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] pt-16 px-4 relative overflow-hidden">
+          {/* Background Text */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+            <h1 className="text-[12vw] sm:text-[10vw] md:text-[8vw] font-orbitron font-black whitespace-nowrap">
+              <span className="text-white/20">I'm </span>
+              <span className="text-coral/30">Blue OX</span>
+            </h1>
+          </div>
+
+          {/* Character Card */}
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="bg-white rounded-3xl p-2 shadow-2xl mb-6">
+              <img
+                src={CHARACTER.profilePic}
                 alt={CHARACTER.name}
-                className="w-16 h-16 rounded-full object-cover border-2 border-coral"
+                className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-2xl object-contain"
               />
-              <div>
-                <h2 className="font-orbitron text-lg font-bold text-white">{CHARACTER.name}</h2>
-                <p className="text-coral font-space text-sm">{CHARACTER.role}</p>
-                <p className="text-gray-400 font-space text-xs mt-1">{CHARACTER.status}</p>
-              </div>
             </div>
-          )}
+
+            {/* CTA Button */}
+            <button
+              onClick={() => {
+                const chatArea = document.getElementById('chat-area');
+                chatArea?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="bg-coral hover:bg-coral-dark text-white font-space font-semibold px-8 py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+            >
+              Message
+            </button>
+
+            {/* Scroll Indicator */}
+            <div className="mt-12 animate-bounce">
+              <svg className="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chat Area */}
+      <div id="chat-area" className={`flex-1 overflow-y-auto px-4 py-6 ${userPath && !isComplete ? 'pt-32' : 'pt-24'} ${messages.length <= 1 && !userPath ? 'min-h-screen' : ''}`}>
+        <div className="max-w-3xl mx-auto">
 
           {/* Messages */}
           <div className="space-y-4">

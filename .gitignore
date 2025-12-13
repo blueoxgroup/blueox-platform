@@ -233,6 +233,11 @@
 # Gatsby files
 **/.cache/
 **/public
+# But keep frontend public folders
+!blueox/public/
+!blueox/public/**
+!blueox-admin/public/
+!blueox-admin/public/**
 
 # Vue.js
 **/dist/
