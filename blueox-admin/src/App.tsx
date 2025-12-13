@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Users, FileText, CreditCard, Briefcase, CheckCircle, Clock, Download, Plus, X, Search, LogOut, Shield, Eye, EyeOff, Trash2, ChevronDown, ChevronUp, Edit2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Users, FileText, CreditCard, Briefcase, CheckCircle, Clock, Download, Plus, X, Search, LogOut, Shield, Eye, EyeOff, Trash2, ChevronDown, ChevronUp, Edit2, Upload } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { supabase, Client, Application, Document as DocType, Payment, Job, ClientPaymentPhases } from './lib/supabase';
 
@@ -313,6 +313,91 @@ const AdminDashboard: React.FC = () => {
       a.href = url;
       a.download = doc.file_name;
       a.click();
+    }
+  };
+
+  // Download application document from storage
+  const downloadApplicationDocument = async (filePath: string, fieldName: string) => {
+    try {
+      const { data, error } = await supabase.storage.from('documents').download(filePath);
+      if (error) {
+        console.error('Download error:', error);
+        alert(`Failed to download: ${error.message}`);
+        return;
+      }
+      if (data) {
+        const url = URL.createObjectURL(data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filePath.split('/').pop() || `${fieldName}-document`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error('Download exception:', err);
+      alert('Download failed');
+    }
+  };
+
+  // Delete application document from storage
+  const deleteApplicationDocument = async (filePath: string, fieldName: string) => {
+    if (!editingApplication) return;
+    if (!confirm(`Delete the ${fieldName} document? This cannot be undone.`)) return;
+
+    try {
+      const { error } = await supabase.storage.from('documents').remove([filePath]);
+      if (error) {
+        console.error('Delete error:', error);
+        alert(`Failed to delete: ${error.message}`);
+        return;
+      }
+
+      // Update application data to remove the document reference
+      const updatedDocs = { ...(editingApplication.data?.uploadedDocuments as Record<string, string> || {}) };
+      delete updatedDocs[fieldName];
+
+      setEditingApplication({
+        ...editingApplication,
+        data: { ...editingApplication.data, uploadedDocuments: updatedDocs }
+      });
+
+      alert('Document deleted successfully');
+    } catch (err) {
+      console.error('Delete exception:', err);
+      alert('Delete failed');
+    }
+  };
+
+  // Upload new application document
+  const uploadApplicationDocument = async (file: File, fieldName: string) => {
+    if (!editingApplication) return;
+
+    try {
+      const fileName = `${Date.now()}-${fieldName}-${file.name}`;
+      const filePath = `applications/${fileName}`;
+
+      const { error } = await supabase.storage.from('documents').upload(filePath, file);
+      if (error) {
+        console.error('Upload error:', error);
+        alert(`Failed to upload: ${error.message}`);
+        return;
+      }
+
+      // Update application data with new document path
+      const updatedDocs = { ...(editingApplication.data?.uploadedDocuments as Record<string, string> || {}) };
+      updatedDocs[fieldName] = filePath;
+
+      setEditingApplication({
+        ...editingApplication,
+        data: { ...editingApplication.data, uploadedDocuments: updatedDocs }
+      });
+
+      alert('Document uploaded successfully');
+    } catch (err) {
+      console.error('Upload exception:', err);
+      alert('Upload failed');
     }
   };
 
@@ -1022,6 +1107,101 @@ const AdminDashboard: React.FC = () => {
                     className="w-full border rounded-lg px-3 py-2 h-24"
                     placeholder="Internal notes about this application..."
                   />
+                </div>
+
+                {/* Documents Management */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium text-navy mb-3 flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Documents
+                  </h4>
+
+                  {/* Existing Documents */}
+                  {editingApplication.data?.uploadedDocuments &&
+                   typeof editingApplication.data.uploadedDocuments === 'object' &&
+                   Object.keys(editingApplication.data.uploadedDocuments).length > 0 ? (
+                    <div className="space-y-2 mb-4">
+                      {Object.entries(editingApplication.data.uploadedDocuments as Record<string, string>).map(([fieldName, filePath]) => (
+                        <div key={fieldName} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                          <div className="flex items-center space-x-2">
+                            <FileText className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm font-medium capitalize">{fieldName.replace(/([A-Z])/g, ' $1').trim()}</span>
+                            <span className="text-xs text-gray-400">({String(filePath).split('/').pop()})</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => downloadApplicationDocument(String(filePath), fieldName)}
+                              className="text-blue-600 hover:text-blue-800 p-1"
+                              title="Download"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteApplicationDocument(String(filePath), fieldName)}
+                              className="text-red-600 hover:text-red-800 p-1"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 mb-4">No documents uploaded yet.</p>
+                  )}
+
+                  {/* Upload New Document */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <label className="block text-sm font-medium mb-2">Upload New Document</label>
+                    <div className="flex items-center space-x-3">
+                      <select
+                        id="docType"
+                        className="border rounded-lg px-3 py-2 text-sm"
+                        defaultValue=""
+                      >
+                        <option value="" disabled>Select type...</option>
+                        <option value="cv">CV / Resume</option>
+                        <option value="passport">Passport</option>
+                        <option value="certificate">Certificate</option>
+                        <option value="policeReport">Police Report</option>
+                        <option value="other">Other Document</option>
+                      </select>
+                      <input
+                        type="file"
+                        id="docFile"
+                        className="hidden"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          const docType = (document.getElementById('docType') as HTMLSelectElement)?.value;
+                          if (file && docType) {
+                            uploadApplicationDocument(file, docType);
+                            e.target.value = '';
+                          } else if (!docType) {
+                            alert('Please select a document type first');
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const docType = (document.getElementById('docType') as HTMLSelectElement)?.value;
+                          if (!docType) {
+                            alert('Please select a document type first');
+                            return;
+                          }
+                          document.getElementById('docFile')?.click();
+                        }}
+                        className="flex items-center space-x-2 bg-navy text-white px-4 py-2 rounded-lg hover:bg-navy-dark transition text-sm"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Choose File</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 

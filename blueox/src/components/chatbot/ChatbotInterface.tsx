@@ -310,24 +310,33 @@ const ChatbotInterface: React.FC = () => {
     setIsTyping(true);
 
     const config = PATH_CONFIGS[userPath];
-    const allData = {
+    const allData: Record<string, unknown> = {
       ...collectedData,
       ...formData,
       selectedJob: selectedJob?.id,
-      uploadedDocuments: Object.keys(uploadedFiles)
+      uploadedDocuments: {} as Record<string, string>
     };
 
     // Save to Supabase if configured
     if (isSupabaseConfigured) {
       try {
-        // Upload files first
+        // Upload files first and track their paths
+        const uploadedDocumentPaths: Record<string, string> = {};
         for (const [fieldName, file] of Object.entries(uploadedFiles)) {
-          const fileName = `${Date.now()}-${file.name}`;
+          const fileName = `${Date.now()}-${fieldName}-${file.name}`;
+          const filePath = `applications/${fileName}`;
           const { error } = await supabase.storage
             .from('documents')
-            .upload(`applications/${fileName}`, file);
-          if (error) console.error('Upload error:', error);
+            .upload(filePath, file);
+          if (error) {
+            console.error('Upload error:', error);
+          } else {
+            uploadedDocumentPaths[fieldName] = filePath;
+          }
         }
+
+        // Update allData with actual file paths
+        allData.uploadedDocuments = uploadedDocumentPaths;
 
         // Save application
         const { data: insertedApp, error: insertError } = await supabase.from('applications').insert({
