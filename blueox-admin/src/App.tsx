@@ -707,14 +707,30 @@ const AdminDashboard: React.FC = () => {
                                     <div className="mt-4 pt-4 border-t">
                                       <h5 className="font-medium text-gray-700 mb-2">Uploaded Documents</h5>
                                       <div className="flex flex-wrap gap-2">
-                                        {(Array.isArray(appData.uploadedDocuments)
-                                          ? appData.uploadedDocuments
-                                          : [appData.uploadedDocuments]
-                                        ).map((doc: string, idx: number) => (
-                                          <span key={idx} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                                            {doc}
-                                          </span>
-                                        ))}
+                                        {/* Handle new format: Record<string, string> */}
+                                        {typeof appData.uploadedDocuments === 'object' && !Array.isArray(appData.uploadedDocuments) ? (
+                                          Object.entries(appData.uploadedDocuments as Record<string, string>).map(([fieldName, filePath]) => (
+                                            <button
+                                              key={fieldName}
+                                              onClick={() => downloadApplicationDocument(String(filePath), fieldName)}
+                                              className="flex items-center space-x-1 bg-green-100 text-green-800 px-3 py-1 rounded text-xs hover:bg-green-200 transition"
+                                              title={`Download ${fieldName}`}
+                                            >
+                                              <Download className="w-3 h-3" />
+                                              <span className="capitalize">{fieldName.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                            </button>
+                                          ))
+                                        ) : (
+                                          /* Handle old format: string[] (just field names, no download) */
+                                          (Array.isArray(appData.uploadedDocuments)
+                                            ? appData.uploadedDocuments
+                                            : []
+                                          ).map((doc: string, idx: number) => (
+                                            <span key={idx} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                                              {doc}
+                                            </span>
+                                          ))
+                                        )}
                                       </div>
                                     </div>
                                   )}
