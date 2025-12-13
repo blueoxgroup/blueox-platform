@@ -41,13 +41,15 @@ export const WELCOME_MESSAGE = `Hey! I'm Blue OX. What brings you here today?`;
 export const WHATSAPP_LINK = "https://wa.me/message/F6QOLB6IS3VHF1";
 
 // Company flow - redirect to WhatsApp
-export const COMPANY_REDIRECT_MESSAGE = `Oh yeah! That's exactly what we're looking for! We help companies connect with talented professionals from around the world.
+export const COMPANY_REDIRECT_MESSAGE = `Great! We specialize in connecting companies with skilled Blue Collar workers across Europe.
 
-For the best experience, let's chat directly. Our team can walk you through everything and answer all your questions.
+Our expertise includes placing Electricians, Welders, Carpenters, Truck Drivers, Construction Workers, Warehouse Staff, and more.
+
+For the best experience, let's chat directly. Our team can walk you through everything.
 
 Reach out to us here: ${WHATSAPP_LINK}
 
-This is gonna be great! Looking forward to hearing from you!`;
+Looking forward to hearing from you!`;
 
 export const PATH_CONFIGS: Record<string, PathConfig> = {
   student_university: {
@@ -146,11 +148,10 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
       { field: 'email', label: 'Email Address', type: 'email', placeholder: 'your.email@example.com', required: true },
       { field: 'whatsapp', label: 'WhatsApp Number', type: 'tel', placeholder: '+234 XXX XXX XXXX', required: true },
       { field: 'cv', label: 'Europass CV', type: 'file', required: true, helpText: 'Create one at europass.europa.eu/en/create-europass-cv', helpLink: 'https://europass.europa.eu/en/create-europass-cv' },
-      { field: 'passport', label: 'Passport (clearly scanned)', type: 'file', required: true },
-      { field: 'policeReport', label: 'Police Letter from Interpol', type: 'file', required: true }
+      { field: 'passport', label: 'Passport (clearly scanned)', type: 'file', required: true }
     ]
   },
-  
+
   student_job: {
     id: 'student_job',
     name: 'Student Job Path',

@@ -124,61 +124,58 @@ const ChatbotInterface: React.FC = () => {
   };
 
   // Fetch live jobs from Supabase and match based on user preferences
+  // Less strict matching: if a country is selected, show ALL jobs from that country
   const fetchAndMatchJobs = async (data: CollectedData): Promise<Job[]> => {
     const userSkills = (data.skills as string[]) || [];
     const userCountries = (data.targetCountries as string[]) || [];
-    
+
     try {
       // Fetch active jobs from Supabase
       const { data: jobsData, error } = await supabase
         .from('jobs')
         .select('*')
         .eq('is_active', true);
-      
+
       if (error || !jobsData) {
         console.error('Error fetching jobs:', error);
         return [];
       }
 
-      // Match jobs based on user preferences
+      // Filter jobs by country only - show ALL jobs from selected countries
       const matchedJobs = jobsData.filter(job => {
-        // Country matching
-        const countryMatch = userCountries.length === 0 || 
-          userCountries.includes(job.country) || 
-          userCountries.includes('Any') || 
-          userCountries.includes('Other');
-        
-        if (!countryMatch) return false;
-
-        // Skill matching - check if job title/description contains skill keywords
-        if (userSkills.length === 0 || userSkills.includes('Other')) return true;
-        
-        const jobText = `${job.title} ${job.description} ${job.requirements || ''}`.toLowerCase();
-        
-        return userSkills.some(skill => {
-          const keywords = SKILL_KEYWORDS[skill] || [skill.toLowerCase()];
-          return keywords.some(keyword => jobText.includes(keyword));
-        });
+        // If no countries selected or "Any" selected, show all jobs
+        if (userCountries.length === 0 || userCountries.includes('Any') || userCountries.includes('Other')) {
+          return true;
+        }
+        // Otherwise, only filter by country match
+        return userCountries.includes(job.country);
       });
 
-      // Sort by relevance (more keyword matches = higher score)
+      // Sort by skill relevance (jobs matching skills rank higher, but all are shown)
       const scoredJobs = matchedJobs.map(job => {
-        const jobText = `${job.title} ${job.description}`.toLowerCase();
+        const jobText = `${job.title} ${job.description} ${job.requirements || ''}`.toLowerCase();
         let score = 0;
+
+        // Add score for skill matches (for sorting, not filtering)
         userSkills.forEach(skill => {
+          if (skill === 'Any') return;
           const keywords = SKILL_KEYWORDS[skill] || [skill.toLowerCase()];
           keywords.forEach(keyword => {
-            if (jobText.includes(keyword)) score++;
+            if (jobText.includes(keyword)) score += 2;
           });
         });
-        if (userCountries.includes(job.country)) score += 2;
+
+        // Boost exact country match
+        if (userCountries.includes(job.country)) score += 1;
+
         return { ...job, score };
       });
 
+      // Sort by score (skill-matched jobs appear first)
       scoredJobs.sort((a, b) => b.score - a.score);
-      
-      // Convert to Job type format
-      return scoredJobs.slice(0, 5).map(job => ({
+
+      // Convert to Job type format - show more jobs (up to 10)
+      return scoredJobs.slice(0, 10).map(job => ({
         id: job.id,
         title: job.title,
         company: job.company || 'Blue Ox Partner',
@@ -490,7 +487,7 @@ const ChatbotInterface: React.FC = () => {
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-coral font-space text-sm transition-colors"
               >
-                Talk to previous customers
+                Talk to Previous Clients
               </a>
               <a 
                 href={WHATSAPP_LINK} 
@@ -536,7 +533,7 @@ const ChatbotInterface: React.FC = () => {
                   rel="noopener noreferrer"
                   className="text-gray-300 hover:text-coral font-space text-sm"
                 >
-                  Talk to previous customers
+                  Talk to Previous Clients
                 </a>
                 <a 
                   href={WHATSAPP_LINK} 
@@ -761,6 +758,12 @@ const ChatbotInterface: React.FC = () => {
                       )}
                     </div>
                   ))}
+                  {/* EU Consent Notice */}
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-3 mt-4">
+                    <p className="text-xs text-gray-400 font-space">
+                      By uploading documents and submitting this form, you consent to Blue OX using your uploads and personal data for processing your application in accordance with EU data protection regulations.
+                    </p>
+                  </div>
                   <button
                     type="submit"
                     disabled={isSubmitting}
