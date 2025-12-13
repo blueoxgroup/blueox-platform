@@ -28,7 +28,7 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-navy flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="Blue OX" className="h-16 mx-auto mb-4" />
+          <img src="/assets/logo.png" alt="The Blue OX - Earn while you study in Europe" className="h-16 mx-auto mb-4" />
           <h1 className="font-orbitron text-2xl font-bold text-navy">Admin Console</h1>
           <p className="text-gray-500 mt-2">Secure access for administrators only</p>
         </div>
@@ -346,7 +346,7 @@ const AdminDashboard: React.FC = () => {
       <header className="bg-navy text-white sticky top-0 z-20">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center">
-            <img src="/logo.png" alt="Blue OX" className="h-10 mr-4" />
+            <img src="/assets/logo.png" alt="The Blue OX - Admin Console" className="h-10 mr-4" />
             <div>
               <h1 className="font-orbitron text-xl font-bold">Admin Console</h1>
               <p className="text-gray-400 text-sm">CRM Management Dashboard</p>
