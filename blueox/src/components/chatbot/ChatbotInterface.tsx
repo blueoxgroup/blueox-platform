@@ -408,8 +408,11 @@ const ChatbotInterface: React.FC = () => {
         <header className="fixed top-0 left-0 right-0 z-50 bg-navy-dark/95 backdrop-blur-sm border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex items-center justify-between h-16">
-              <div className="flex items-center space-x-2">
-                <img src="/logo1.png" alt="Blue OX" className="h-8" />
+              <div className="flex items-center space-x-3">
+                <img src="/assets/logo.png" alt="Blue OX" className="h-8" />
+                <span className="hidden sm:block text-xs font-medium text-white/80 max-w-[180px] leading-tight">
+                  Guaranteed Job in Europe in 90 Days Or We Work for Free
+                </span>
               </div>
               <nav className="hidden md:flex items-center space-x-6">
                 <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-coral font-space text-sm transition-colors">Contact us</a>
@@ -422,43 +425,39 @@ const ChatbotInterface: React.FC = () => {
         </header>
 
         {/* Hero Content */}
-        <div className="flex-1 flex flex-col items-center justify-center px-4 pt-16">
-          {/* Background Text */}
-          <div className="relative w-full max-w-4xl">
-            <div className="text-center">
-              <h1 className="font-orbitron text-6xl md:text-8xl lg:text-9xl font-bold select-none">
-                <span className="text-white/80">I'm </span>
-                <span className="text-coral">Blue OX</span>
-              </h1>
-            </div>
-
-            {/* Profile Picture - Positioned over the text */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/3 z-10">
-              <div className="bg-white rounded-2xl p-2 shadow-2xl">
-                <img
-                  src={CHARACTER.profilePic}
-                  alt={CHARACTER.name}
-                  className="w-32 h-32 md:w-40 md:h-40 rounded-xl object-cover"
-                />
-              </div>
-            </div>
+        <div className="flex-1 flex flex-col items-center justify-center px-4 pt-16 relative overflow-hidden">
+          {/* Background Text - Behind everything */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+            <h1 className="font-orbitron text-[15vw] md:text-[12vw] font-black whitespace-nowrap">
+              <span className="text-white/30">I'm </span>
+              <span className="text-coral/40">Blue OX</span>
+            </h1>
           </div>
 
-          {/* Message Button */}
-          <div className="mt-24 md:mt-28">
+          {/* Profile Picture - On top of text */}
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="bg-white rounded-3xl p-2 shadow-2xl mb-8">
+              <img
+                src={CHARACTER.profilePic}
+                alt={CHARACTER.name}
+                className="w-36 h-36 md:w-44 md:h-44 rounded-2xl object-cover"
+              />
+            </div>
+
+            {/* Message Button */}
             <button
               onClick={startChat}
               className="bg-coral hover:bg-coral-dark text-white font-space font-semibold text-lg px-12 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               Message
             </button>
-          </div>
 
-          {/* Scroll indicator */}
-          <div className="mt-12 animate-bounce">
-            <svg className="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
+            {/* Scroll indicator */}
+            <div className="mt-12 animate-bounce">
+              <svg className="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
@@ -471,28 +470,31 @@ const ChatbotInterface: React.FC = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-navy-dark/95 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center">
+            {/* Logo with Guarantee */}
+            <Link to="/" className="flex items-center space-x-3">
               <img
                 src="/assets/logo.png"
-                alt="The Blue OX - Earn while you study in Europe"
-                className="h-10 sm:h-12 w-auto"
+                alt="Blue OX"
+                className="h-8 sm:h-10 w-auto"
               />
+              <span className="hidden sm:block text-xs font-medium text-white/80 max-w-[180px] leading-tight">
+                Guaranteed Job in Europe in 90 Days Or We Work for Free
+              </span>
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
-              <a 
-                href={WHATSAPP_LINK} 
-                target="_blank" 
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-coral font-space text-sm transition-colors"
               >
                 Talk to Previous Clients
               </a>
-              <a 
-                href={WHATSAPP_LINK} 
-                target="_blank" 
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-coral font-space text-sm transition-colors"
               >
