@@ -3,10 +3,10 @@ import { PathConfig, ChatChoice } from './types';
 // Blue OX Character Profile
 export const CHARACTER = {
   name: "Blue OX",
-  role: "",
-  profilePic: "/imgs/blue-ox-profile.jpg",
+  role: "Your European Job Assistant",
+  profilePic: "/pfp.png",
   greeting: "Hey there! I'm Blue OX, your buddy for finding awesome opportunities in Europe!",
-  status: "Online - Ready to help you shine!"
+  status: "Online - Ready to help!"
 };
 
 export const INITIAL_CHOICES: ChatChoice[] = [
@@ -36,11 +36,7 @@ export const INITIAL_CHOICES: ChatChoice[] = [
   }
 ];
 
-export const WELCOME_MESSAGE = `Hey there! I'm Blue OX, your buddy for finding awesome opportunities in Europe! What's your European dream?
-
-I've helped tons of amazing people just like you discover incredible opportunities across Europe. This is gonna be so exciting - you're gonna love what we find together!
-
-You've got this! I believe in you! So tell me - what brings you here today?`;
+export const WELCOME_MESSAGE = `Hey! I'm Blue OX. What brings you here today?`;
 
 export const WHATSAPP_LINK = "https://wa.me/message/F6QOLB6IS3VHF1";
 
@@ -67,10 +63,10 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
       },
       {
         id: 'target_countries',
-        question: "Perfect! Now, which European countries are you interested in?\n\nPick as many as you like - keeping your options open is always smart! You can do it!",
+        question: "Perfect! Now, which European countries are you interested in?\n\nPick as many as you like - keeping your options open is always smart!",
         inputType: 'multiselect',
         field: 'targetCountries',
-        inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'France', 'Spain', 'Italy', 'Other']
+        inputOptions: ['Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'France', 'Spain', 'Italy', 'Greece', 'Slovakia', 'Romania', 'Serbia', 'Bulgaria', 'Lithuania', 'Croatia', 'Other']
       },
       {
         id: 'field_of_study',
@@ -110,17 +106,17 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
     steps: [
       {
         id: 'target_countries',
-        question: "Looking for work in Europe? You've come to the right place! This is gonna be awesome!\n\nWhich countries are you interested in working in?",
+        question: "Looking for work in Europe? You've come to the right place!\n\nWhich countries are you interested in working in?",
         inputType: 'multiselect',
         field: 'targetCountries',
-        inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'Belgium', 'Sweden', 'Norway', 'Any']
+        inputOptions: ['Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Belgium', 'Greece', 'Slovakia', 'Romania', 'Serbia', 'Bulgaria', 'Lithuania', 'Croatia', 'Any']
       },
       {
         id: 'skills',
-        question: "Tell me about your skills - what are you good at?\n\nSelect all that apply. I totally get it - you've got lots of talents!",
+        question: "What are your main skills?\n\nSelect all that apply.",
         inputType: 'multiselect',
         field: 'skills',
-        inputOptions: ['Technical/Trade Skills', 'Language Skills', 'Management', 'Customer Service', 'Healthcare', 'IT/Technology', 'Driving', 'Construction', 'Manufacturing', 'Hospitality', 'Agriculture', 'Other']
+        inputOptions: ['Electricians', 'Scaffolders', 'Mig Welding', 'Mug Welding', 'Carpentry', 'Truck Drivers', 'Forklift Drivers', 'Construction Helpers', 'Plumbers', 'HVAC Techs', 'Caregivers', 'Warehouse Workers', 'Ship Building', 'Any']
       },
       {
         id: 'experience_years',
@@ -168,10 +164,10 @@ export const PATH_CONFIGS: Record<string, PathConfig> = {
       },
       {
         id: 'target_countries',
-        question: "Which European country are you interested in? This is gonna be so exciting!",
+        question: "Which European country are you interested in?",
         inputType: 'multiselect',
         field: 'targetCountries',
-        inputOptions: ['Germany', 'Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'Austria', 'France', 'Spain', 'Italy', 'Other']
+        inputOptions: ['Netherlands', 'Poland', 'Czech Republic', 'Hungary', 'France', 'Spain', 'Italy', 'Greece', 'Slovakia', 'Romania', 'Serbia', 'Bulgaria', 'Lithuania', 'Croatia', 'Other']
       },
       {
         id: 'start_date',

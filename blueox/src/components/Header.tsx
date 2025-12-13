@@ -15,8 +15,11 @@ const Header: React.FC = () => {
     <header className="bg-white shadow-sm fixed w-full top-0 z-50">
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center">
-            <img src="/images/logo.png" alt="Blue OX" className="h-12" />
+          <Link to="/" className="flex items-center space-x-3">
+            <img src="/logo1.png" alt="Blue OX" className="h-10" />
+            <span className="hidden sm:block text-sm font-medium text-navy max-w-[200px] leading-tight">
+              Guaranteed Job in Europe in 90 Days Or We Work for Free
+            </span>
           </Link>
 
           {/* Desktop Navigation */}

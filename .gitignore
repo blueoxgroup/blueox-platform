@@ -232,7 +232,7 @@
 
 # Gatsby files
 **/.cache/
-**/public
+# **/public - DISABLED: We need public folders for static assets
 
 # Vue.js
 **/dist/
