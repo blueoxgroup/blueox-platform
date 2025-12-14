@@ -84,14 +84,20 @@ const ChatbotInterface: React.FC = () => {
     }, 300);
   };
 
-  // Auto-scroll to bottom
+  // Scroll to bottom only when user sends a message (not on bot responses)
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
+  // Only scroll when user explicitly interacts, not on every message
+  const lastMessageRef = useRef<string | null>(null);
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom, showForm, showJobSelection]);
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.role === 'user' && lastMessage.id !== lastMessageRef.current) {
+      lastMessageRef.current = lastMessage.id;
+      scrollToBottom();
+    }
+  }, [messages, scrollToBottom]);
 
   // Chat is started by clicking Message button in hero section
 
@@ -417,18 +423,21 @@ const ChatbotInterface: React.FC = () => {
 
   // Typing animation state
   const [typingText, setTypingText] = useState('');
+  const [typingDone, setTypingDone] = useState(false);
   const fullText = "I'm Blue OX";
 
   useEffect(() => {
     if (showHero) {
       let index = 0;
       setTypingText('');
+      setTypingDone(false);
       const timer = setInterval(() => {
         if (index < fullText.length) {
           setTypingText(fullText.slice(0, index + 1));
           index++;
         } else {
           clearInterval(timer);
+          setTypingDone(true);
         }
       }, 100);
       return () => clearInterval(timer);
@@ -500,20 +509,30 @@ const ChatbotInterface: React.FC = () => {
         {/* Hero Content */}
         <div className="flex-1 flex flex-col items-center justify-center px-4 pt-20">
           {/* Hero Text with Typing Animation */}
-          <h1 className="font-orbitron text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black text-center mb-8">
+          <h1 className="font-orbitron text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-center mb-2">
             <span className="text-white">{typingText.slice(0, 4)}</span>
             <span className="text-coral">{typingText.slice(4)}</span>
-            <span className="animate-pulse text-coral">|</span>
+            {!typingDone && <span className="animate-pulse text-coral">|</span>}
           </h1>
 
+          {/* Subtitle - appears after typing */}
+          <p className={`font-space text-base sm:text-lg md:text-xl text-gray-300 text-center mb-6 max-w-md transition-opacity duration-500 ${typingDone ? 'opacity-100' : 'opacity-0'}`}>
+            I help you find work or study in Europe
+          </p>
+
           {/* Profile Picture */}
-          <div className="bg-white rounded-3xl p-2 shadow-2xl mb-8">
+          <div className="bg-white rounded-3xl p-2 shadow-2xl mb-6">
             <img
               src={CHARACTER.profilePic}
               alt={CHARACTER.name}
-              className="w-32 h-32 md:w-40 md:h-40 rounded-2xl object-cover"
+              className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl object-cover"
             />
           </div>
+
+          {/* CTA Text */}
+          <p className={`font-space text-sm text-gray-400 mb-3 transition-opacity duration-500 ${typingDone ? 'opacity-100' : 'opacity-0'}`}>
+            Click below to get started
+          </p>
 
           {/* Message Button */}
           <button
@@ -522,13 +541,6 @@ const ChatbotInterface: React.FC = () => {
           >
             Message
           </button>
-
-          {/* Scroll indicator */}
-          <div className="mt-12 animate-bounce">
-            <svg className="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
-          </div>
         </div>
       </div>
     );
